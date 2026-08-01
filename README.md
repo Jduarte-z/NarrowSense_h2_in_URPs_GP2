@@ -15,7 +15,7 @@ For running cov-LDSC we need a handful of things:
 2. To compute the LD scores from the reference panel adjusting them by the principal components included in our genome-wide association studies 
 
 
-### Step 2 - get your genotype array data
+### Step 2 - get your genotype array and phenotype/covariate data
 Before starting we are assuming a couple of things:
 
 1. That your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations is described elsewhere (https://github.com/MataLabCCF/GWASQC).
