@@ -1215,7 +1215,7 @@ if __name__ == '__main__':
 ```
 </details>
 
-And then, create the covariate file subsetted to unrelated pairs and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
+And then, inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the covariate file subsetted to unrelated pairs and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
 
 <details>
 <summary><strong>View: <code>awk command</code></strong></summary>
