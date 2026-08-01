@@ -698,7 +698,7 @@ however, we advise you to keep the default parameters as they are and only chang
 ### Step 2.b - get the list of unrelated individuals 
 Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
 
-In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (DOI: 10.1016/j.csbj.2022.04.009). 
+In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (https://spj.science.org/doi/10.1016/j.csbj.2022.04.009). 
 
 Example of the command line:
 ```
