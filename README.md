@@ -714,7 +714,8 @@ covar.txt
 genotyped_data_plink2_prefix.pgen 
 genotyped_data_plink2_prefix.psam 
 genotyped_data_plink2_prefix.pvar 
-outFolder_pca_andSuch/ 
+outFolder_pca_andSuch/
+pcs_pipeline_h2_project.log
 pcs_pipeline_h2_project.r
 
 cd outFolder_pca_andSuch/
