@@ -1309,7 +1309,109 @@ chr10.b38.gmap.gz  chr14.b38.gmap.gz  chr18.b38.gmap.gz  chr21.b38.gmap.gz  chr4
 chr11.b38.gmap.gz  chr15.b38.gmap.gz  chr19.b38.gmap.gz  chr22.b38.gmap.gz  chr5.b38.gmap.gz  chr9.b38.gmap.gz       genetic_maps.b38_shapeit4.tar.gz
 chr12.b38.gmap.gz  chr16.b38.gmap.gz  chr1.b38.gmap.gz   chr2.b38.gmap.gz   chr6.b38.gmap.gz  chrX.b38.gmap.gz       hpm3snplist.bed
 chr13.b38.gmap.gz  chr17.b38.gmap.gz  chr20.b38.gmap.gz  chr3.b38.gmap.gz   chr7.b38.gmap.gz  chrX_par1.b38.gmap.gz  
+```
 
+Once you have downloaded this data, you can press play in the following script to generate the reference panel. 
+
+Here is an example for submitting one job per chromosome in a given computing cluster:
+
+<details>
+<summary><strong>View script: <code>pipeline_4referencePanel.py</code></strong></summary>
+
+<br>
+
+```python 
+#pipeline 4 reference panel 
+#Run it inside /working_directory/reference_panel
+import os
+for i in range(1,23):
+    mem = "25G" if i in {1,2,3,4,5} else "16G"
+    runFolder = f"./chr{i}"    
+    vcfFileIn = f"../genetic_data/imputed/chr{i}.dose.vcf.gz" 
+    plink1FileOut = f"{runFolder}/chr{i}.plink1.extracted"
+    plink1_cmUpdatedFileOut = f"{runFolder}/chr{i}.plink1.extracted_cmUpdated"
+    #required IID IID format for the keep list 
+    keepList_unrelated = f"../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs_IIDs.txt"
+    covariateFile = f"../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.tsv"
+    #the high ld regions list was generated from the Rscript for the PCA pipeline
+    HLA_regions = f"../pca_and_such/outFolder_pca_andSuch/highLD_regions_grindeLab_hg38.tsv"
+    #this list was obtained from gwaslab github: https://github.com/Cloufield/gwaslab/tree/main/src/gwaslab/data/hapmap3_SNPs
+    #here we use one that we pre-processed to match our pipeline requirements 
+    hapMap3_bedList = f"./hpm3snplist.bed"
+    genotyped_varsList = f"./genotyped_varsList.txt"
+
+    mkdirlogs = f"{runFolder}/logs"
+    if not os.path.exists(mkdirlogs):
+        os.makedirs(mkdirlogs)
+    mkdirout = f"{runFolder}/out"
+    if not os.path.exists(mkdirout):
+        os.makedirs(mkdirout)
+
+    fileSbatch = open(f"{runFolder}/logs/{i}convert_vcf_toPlink1_computeCovLDscores.pbs", "w")
+
+    fileSbatch.write(f"#!/bin/sh\n")
+    fileSbatch.write(f"#SBATCH --mail-type=END,FAIL\n")
+    fileSbatch.write(f"#SBATCH --mail-user=DUARTEJ3@ccf.org\n")
+    fileSbatch.write(f"#SBATCH --ntasks=1\n")
+    fileSbatch.write(f"#SBATCH --cpus-per-task=4\n")
+    fileSbatch.write(f"#SBATCH --mem={mem}\n")
+    fileSbatch.write(f"#SBATCH --partition=defq\n")
+    fileSbatch.write(f"#SBATCH --job-name={i}convert_vcf_toPlink1_computeCovLDscores\n")  
+    fileSbatch.write(f"#SBATCH -o {runFolder}/logs/{i}convert_vcf_toPlink1_computeCovLDscores.out\n")
+    fileSbatch.write(f"#SBATCH -e {runFolder}/logs/{i}convert_vcf_toPlink1_computeCovLDscores.err\n\n")
+
+    fileSbatch.write(
+        f"plink2 --vcf {vcfFileIn} "
+        f"--exclude range {HLA_regions} "
+        f"--extract-if-info \"R2>=0.8\" "
+        f"--write-snplist "
+        f"--rm-dup exclude-all list "
+        f"--set-all-var-ids @:#:\\$r:\\$a "
+        f"--new-id-max-allele-len 100 "
+        f"--out {runFolder}/chr{i}.step1 \n\n"
+
+        """underreprestented populations may suffer more frequently from low quality imputed variants,
+            so in order to increase the coverate of the reference panel, we extracted the well imputed variants, 
+            and complemented them with the union of the genotyped variants and the hapmap3 variants, to then compute 
+            the adjusted LD scores. 
+        """
+
+        f"awk -F':' '{{print $1, $2, $2}}' {runFolder}/chr{i}.step1.snplist > {runFolder}/wellImputed_bed_varList.txt \n"
+        f"awk -F':' '{{print $1, $2, $2}}' {genotyped_varsList} > {runFolder}/genotyped_bed_varList.txt \n"
+        f"cat {hapMap3_bedList} {runFolder}/wellImputed_bed_varList.txt {runFolder}/genotyped_bed_varList.txt> {runFolder}/combined_bed_varList.txt \n\n"
+
+        f"plink2 --vcf {vcfFileIn} "
+        f"--double-id "
+        f"--extract bed1 {runFolder}/combined_bed_varList.txt "
+        f"--keep {keepList_unrelated} " #in IID_IID format
+        f"--keep-allele-order "
+        f"--make-bed --out {plink1FileOut} "
+        f"--set-all-var-ids @:#:\\$r:\\$a "
+        f"--new-id-max-allele-len 1000 "
+        f"--rm-dup exclude-all list \n\n"
+
+
+        
+    #then update the cm map for those plink files while subsetting them to the random sample IDs to compute the adjusted ld scores
+        f"plink --bfile {plink1FileOut} "
+	    f"--maf 0.01 " 
+        f"--cm-map ./chr{i}.b38.gmap {i} " 
+        f"--make-bed --out {plink1_cmUpdatedFileOut} --keep-allele-order \n\n" 
+
+    
+        f"source /home/duartej3/beegfs/JF/programs/miniconda3/etc/profile.d/conda.sh\n"
+        f"conda activate ldsc \n"
+        f"/home/duartej3/beegfs/JF/programs/covLDSC/cov-ldsc/ldsc.py "
+        f"--ld-wind-cm 20.0 "
+        f"--cov {covariateFile} "
+        f"--bfile {plink1_cmUpdatedFileOut} "
+        f"--out {runFolder}/out/covldsc_chr{i} \n"
+    )
+
+    fileSbatch.close()
+    os.system(f"sbatch {runFolder}/logs/{i}convert_vcf_toPlink1_computeCovLDscores.pbs")
+```
+</details>
 
 
 
