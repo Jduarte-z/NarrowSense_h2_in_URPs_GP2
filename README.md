@@ -4,10 +4,14 @@
 ... (pending)
 
 
+Cov-LDSC estimates SNP heritability conditional on the global ancestry PC
+
+For running cov-LDSC we need a handful of things:
+1. To assemble our reference LD panel (here using the genetic data from our respective cohorts).
+2. To compute the LD scores from the reference panel adjusting them by the principal components included in our genome-wide association studies 
 
 
-
-### Step 2 - get your genotype array data ready 
+### Step 2 - get your genotype array data
 Before starting we are assuming a couple of things:
 
 1. That your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations is described elsewhere (https://github.com/MataLabCCF/GWASQC).
@@ -26,7 +30,7 @@ sample4ID	2	2	66 <br>
 sample5ID	2	2	72
 </details>
 
-### Step 2.a
+### Step 2.a - run the PCA pipeline 
 Run the following Rscript in order to compute the principal components through PC-AiR (DOI 10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
 We choose this particular methods since underrepresented populations tend to be admixed, and classical methods to tease apart the related and unrelated datasets could be confused in the presence of genetic admixture. Since both relatedness and admixture are continuum of genetic distance. 
@@ -678,9 +682,45 @@ The " 2>&1 | tee commandLineRun.log  " part is just to save all the print statem
 
 The script by default will create an output folder named outFolder_pca_andSuch/ with all the downstream files that we will need.
 
-the input for the script could be plink1 files, so you would run --input_plink_file genotuped_data_plink1_prefix --input_format bfile
+the input for the script could be plink1 files, so you would run --input_plink_file genotyped_data_plink1_prefix --input_format bfile
 
 you can also modify the default parameters of the script, for more information type: Rscript pcs_pipeline_h2_project.r --help
 
 however, we advise you to keep the default parameters as they are and only change the flags in the example of the command line.
 
+... (discussion here on how to interpret the results and the plots.)
+
+
+### Step 2.b - get the list of unrelated individuals 
+Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
+
+In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (DOI: 10.1016/j.csbj.2022.04.009). 
+
+Example of the command line:
+```
+conda activate h2_project
+
+pwd
+/working_directory
+
+cd pca_and_such/
+
+ls
+covar.txt genotyped_data_plink2_prefix.pgen genotyped_data_plink2_prefix.psam genotyped_data_plink2_prefix.pvar outFolder_pca_andSuch/ pcs_pipeline_h2_project.r
+
+cd outFolder_pca_andSuch/
+python NAToRA_Public.py -i pcrelate_r1_kinship_pairs.tsv -o NAToRA_output_pcrel -c 0.0884
+
+#this will give you the output named NAToRA_output_pcrel_toRemove.txt, which contains the IDs of samples to be removed
+
+wc -l NAToRA_output_pcrel_toRemove.txt 
+32 NAToRA_output_pcrel_toRemove.txt
+
+head -n3 NAToRA_output_pcrel_toRemove.txt
+sampleID3
+sampleID7
+sampleID11
+
+
+
+```
