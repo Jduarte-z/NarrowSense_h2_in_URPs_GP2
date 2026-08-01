@@ -35,6 +35,11 @@ Example of command line:
 pwd
 /working_directory
 mkdir pca_and_such
-cd pca_and_such
-Rscript pcs_pipeline_h2_project.r --input_pfile genotyped_data_plink2_prefix --covar_file covar.txt --removeHighLDregions yes --n_cores 4 2>&1 | tee commandLineRun.log
+cd pca_and_such/
+Rscript pcs_pipeline_h2_project.r --input_plink_file genotyped_data_plink2_prefix --input_format pfile --covar_file covar.txt --removeHighLDregions yes --n_cores 4 2>&1 | tee commandLineRun.log
+
+#The script by default will create an output folder named outFolder_pca_andSuch/
+#the input for the script could be plink1 files, so you would run --input_plink_file genotuped_data_plink1_prefix --input_format bfile
+#you can also modify the default parameters of the script, for more information type: Rscript pcs_pipeline_h2_project.r --help
+#however, we advise you to keep the default parameters as they are and only change the flags in the example of the command line
 ```
