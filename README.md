@@ -1287,6 +1287,8 @@ Additionally, we must also update the centimorgans map of our reference panel, s
 
 Alongside this repository, we have attached the files named hpm3snplist.bed and genetic_maps.b38_shapeit4.tar.gz, make sure to download them and put them inside the directory intended to construct the reference panel.
 
+The genetic map was obtained from Shapeit 4 documentation. Likewise, the list of snps from the hap map project was obtained from GWASLab documentation. 
+
 Example of command line:
 ```
 pwd
@@ -1295,6 +1297,12 @@ pwd
 mkdir reference_panel
 
 cd reference_panel
+
+wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
+
+tar -xvf genetic_maps.b38_shapeit4.tar.gz 
+
+
 
 
 
