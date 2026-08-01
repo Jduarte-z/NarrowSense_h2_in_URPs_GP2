@@ -15,14 +15,16 @@ Before starting we are assuming a couple of things:
 3. Your phenotype file is composed of the individual IDs (IIDs) of your samples, alongside the phenotype (PD status, control = 1, case =2) and basic covariates like Sex (male = 1, female = 2) and Age (quantitative variable).
 
 Here is an example on how the phenotype file should look like:
-```
+
+<details>
+    <summary>covar.txt.txt</summary>
 IID	SEX	STATUS	AGE
 sample1ID	2	1	38
 sample2ID	1	1	33
 sample3ID	1	1	45
 sample4ID	2	2	66
 sample5ID	2	2	72
-```
+</details>
 
 ### Step 2.a
 Run the following Rscript in order to compute the principal components through PC-AiR (DOI 10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
