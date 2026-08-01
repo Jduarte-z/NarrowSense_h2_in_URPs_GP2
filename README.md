@@ -17,7 +17,7 @@ Before starting we are assuming a couple of things:
 Here is an example on how the phenotype file should look like:
 
 <details>
-    <summary>covar.txt.txt</summary>
+    <summary>covar.txt</summary>
 IID	SEX	STATUS	AGE <br>
 sample1ID	2	1	38 <br>
 sample2ID	1	1	33 <br>
