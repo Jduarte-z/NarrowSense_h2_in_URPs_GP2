@@ -31,10 +31,10 @@ sample5ID	2	2	72
 </details>
 
 ### Step 2.a - run the PCA pipeline 
-Run the following Rscript in order to compute the principal components through PC-AiR (DOI 10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
+Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
 We choose this particular methods since underrepresented populations tend to be admixed, and classical methods to tease apart the related and unrelated datasets could be confused in the presence of genetic admixture. Since both relatedness and admixture are continuum of genetic distance. 
-The yield of this approach compared to other more classical methods is not that much different in terms of adjustment for population structure (both can diminish the discovery of spurious association in single variant association testing, see: doi: https://doi.org/10.1101/2025.05.27.25328444, results section). However, since here we are interested in capturing as accurate as possible the h2 estimates, methods that account for population structure in an ancestry-aware approach, are highly encouraged. 
+The yield of this approach compared to other more classical methods is not that much different in terms of adjustment for population structure (both can diminish the discovery of spurious association in single variant association testing, see: https://doi.org/10.1101/2025.05.27.25328444, results section). However, since here we are interested in capturing as accurate as possible the h2 estimates, methods that account for population structure in an ancestry-aware approach, are highly encouraged. 
 
 Example of command line:
 ```
