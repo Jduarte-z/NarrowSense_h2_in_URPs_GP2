@@ -53,9 +53,11 @@ Rscript pcs_pipeline_h2_project.r \
 ```
 The script in question:
 <details>
-    <summary>pcs_pipeline_h2_project.r</summary>
-            
-```R=
+<summary><strong>View script: <code>pcs_pipeline_h2_project.r</code></strong></summary>
+
+<br>
+
+```r
 library(SNPRelate)
 library(GENESIS)
 library(GWASTools)
@@ -670,7 +672,6 @@ write.table(merged, pcair_r2_covar_merged_tsv, sep ='\t', row.names = FALSE, quo
 
 ```
 </details>
-
 The " 2>&1 | tee commandLineRun.log  " part is just to save all the print statements into a log file. You can skip it if you want.
 
 The script by default will create an output folder named outFolder_pca_andSuch/ with all the downstream files that we will need.
