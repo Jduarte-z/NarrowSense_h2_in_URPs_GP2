@@ -45,7 +45,7 @@ Rscript pcs_pipeline_h2_project.r \
 ```
 The " 2>&1 | tee commandLineRun.log  " part is just to save all the print statements into a log file. You can skip it if you want.
 
-The script by default will create an output folder named outFolder_pca_andSuch/ with all the downstream files that we will need. 
+The script by default will create an output folder named outFolder_pca_andSuch/ with all the downstream files that we will need.
 
 the input for the script could be plink1 files, so you would run --input_plink_file genotuped_data_plink1_prefix --input_format bfile
 
