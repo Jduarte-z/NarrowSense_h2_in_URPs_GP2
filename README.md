@@ -18,12 +18,14 @@ Here is an example on how the phenotype file should look like:
 
 <details>
     <summary>covar.txt.txt</summary>
+```
 IID	SEX	STATUS	AGE
 sample1ID	2	1	38
 sample2ID	1	1	33
 sample3ID	1	1	45
 sample4ID	2	2	66
 sample5ID	2	2	72
+```
 </details>
 
 ### Step 2.a
