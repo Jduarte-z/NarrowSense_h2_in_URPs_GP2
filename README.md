@@ -48,7 +48,11 @@ mkdir pca_and_such
 cd pca_and_such/
 
 ls
-covar.txt genotyped_data_plink2_prefix.pgen genotyped_data_plink2_prefix.psam genotyped_data_plink2_prefix.pvar pcs_pipeline_h2_project.r
+covar.txt 
+genotyped_data_plink2_prefix.pgen 
+genotyped_data_plink2_prefix.psam 
+genotyped_data_plink2_prefix.pvar 
+pcs_pipeline_h2_project.r
 
 Rscript pcs_pipeline_h2_project.r \
   --input_plink_file genotyped_data_plink2_prefix \
@@ -706,7 +710,12 @@ pwd
 cd pca_and_such/
 
 ls
-covar.txt genotyped_data_plink2_prefix.pgen genotyped_data_plink2_prefix.psam genotyped_data_plink2_prefix.pvar outFolder_pca_andSuch/ pcs_pipeline_h2_project.r
+covar.txt 
+genotyped_data_plink2_prefix.pgen 
+genotyped_data_plink2_prefix.psam 
+genotyped_data_plink2_prefix.pvar 
+outFolder_pca_andSuch/ 
+pcs_pipeline_h2_project.r
 
 cd outFolder_pca_andSuch/
 python NAToRA_Public.py -i pcrelate_r1_kinship_pairs.tsv -o NAToRA_output_pcrel -c 0.0884
