@@ -1,5 +1,8 @@
 # NarrowSense_h2_in_URPs_GP2
 
+The following tutorial is designed so the analysis could be run from the terminal, the folder structure and file naming showed in the following lines are just an example. 
+However, we encourage you to follow the structure as much as you can. The names are thought to be as convenient as possible for a (potentially) smooth run. 
+
 ### Step 1 - install all the required programs and packages through miniconda3
 ... (pending)
 
