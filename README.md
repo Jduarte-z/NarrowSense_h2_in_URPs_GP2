@@ -1217,7 +1217,12 @@ if __name__ == '__main__':
 
 And then, create the covariate file subsetted to unrelated pairs and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
 
-```
+<details>
+<summary><strong>View script: <code>NAToRA_Public.py</code></strong></summary>
+
+<br>
+
+```bash
 awk -v idfile="covariate_file_no_related_pairs_IIDs.txt" '
 BEGIN {
     FS = OFS = "\t"
@@ -1256,4 +1261,6 @@ FNR == 1 {
 ' NAToRA_output_pcrel_toRemove.txt \
   pcair_r2_covariates_merged.tsv \
   > covariate_file_no_related_pairs.tsv
+
 ```
+</details>
