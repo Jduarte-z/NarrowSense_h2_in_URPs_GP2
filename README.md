@@ -34,11 +34,15 @@ sample4ID	2	2	66 <br>
 sample5ID	2	2	72
 </details>
 
-### Step 2.a - run the PCA pipeline 
+#### Step 2.a - run the PCA pipeline 
 Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
-We choose this particular methods since underrepresented populations tend to be admixed, and classical methods to tease apart the related and unrelated datasets could be confused in the presence of genetic admixture. Since both relatedness and admixture are continuum of genetic distance. 
-The yield of this approach compared to other more classical methods is not that much different in terms of adjustment for population structure (both can diminish the discovery of spurious association in single variant association testing, see: https://doi.org/10.1101/2025.05.27.25328444, results section). However, since here we are interested in capturing as accurate as possible the h2 estimates, methods that account for population structure in an ancestry-aware approach, are highly encouraged. 
+For running cov-LDSC we must restrict ourselves to an unrelated dataset, and require global ancestry estimates of the cohorts through principal component analysis. 
+
+We choose this particular set of methods since underrepresented populations tend to be admixed, and classical methods tend to have problems when a dataset contains related individuals and admixture of genetic ancestry. Since both are continuum of genetic distance. 
+PC-AiR and PC-Relate explicitly model these differences providing more accurate estimates of principal component analysis and kinship estimation. 
+
+The yield of this approach compared to other more classical methods is not that much different in terms of adjustment for population structure (both can control spurious association in single variant association testing, see: https://doi.org/10.1101/2025.05.27.25328444, results section). However, since here we are interested in capturing as accurate as possible the h2 estimates, methods that account for population structure in an ancestry-aware approach, are highly encouraged. 
 
 Example of command line:
 ```
@@ -699,15 +703,13 @@ however, we advise you to keep the default parameters as they are and only chang
 ... (discussion here on how to interpret the results and the plots.)
 
 
-### Step 2.b - get the list of unrelated individuals 
+#### Step 2.b - get the list of unrelated individuals 
 Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
 
 In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (https://spj.science.org/doi/10.1016/j.csbj.2022.04.009). 
 
 Example of the command line:
 ```
-conda activate h2_project
-
 pwd
 /working_directory
 
@@ -1268,3 +1270,31 @@ FNR == 1 {
 
 ```
 </details>
+
+
+### Step 3 - construct the reference panel 
+
+Reference panels for underrepresented populations are challenging to acquire (hence the name "underrepresented"). Hence, a convenient way to overcome this problem is use each cohort's own genetic data to construct an in house reference panel. 
+
+However, this comes with its own challenges. Especially since the majority of our cohort's genetic data is genotype array data and the imputed data on top. So we must ensure the biggest coverage possible genome-wide, while preserving high quality variants. 
+
+The solution we propose to this particular problem consists on generating the list of imputed variants that carry an INFO R2 bigger or equal than 0.8, complemented by the union of genotyped variants and high-confidence variants identified through the hap map project.
+
+Additionally, we must also update the centimorgans map of our reference panel, since it is fundamental to compute the LD scores adjusted for global ancestry estimated derived from PCs. 
+
+
+#### Step 3.a download required data 
+
+Alongside this repository, we have attached the files named hpm3snplist.bed and genetic_maps.b38_shapeit4.tar.gz, make sure to download them and put them inside the directory intended to construct the reference panel.
+
+Example of command line:
+```
+pwd
+/working_directory/
+
+mkdir reference_panel
+
+cd reference_panel
+
+
+
