@@ -711,7 +711,7 @@ covar.txt genotyped_data_plink2_prefix.pgen genotyped_data_plink2_prefix.psam ge
 cd outFolder_pca_andSuch/
 python NAToRA_Public.py -i pcrelate_r1_kinship_pairs.tsv -o NAToRA_output_pcrel -c 0.0884
 
-#this will give you the output named NAToRA_output_pcrel_toRemove.txt, which contains the IDs of samples to be removed
+#this will give you the output that contains the IDs of samples to be removed
 
 wc -l NAToRA_output_pcrel_toRemove.txt 
 32 NAToRA_output_pcrel_toRemove.txt
