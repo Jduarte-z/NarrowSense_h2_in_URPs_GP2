@@ -1302,6 +1302,13 @@ wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main
 
 tar -xvf genetic_maps.b38_shapeit4.tar.gz 
 
+wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/hpm3snplist.bed
+
+ls
+chr10.b38.gmap.gz  chr14.b38.gmap.gz  chr18.b38.gmap.gz  chr21.b38.gmap.gz  chr4.b38.gmap.gz  chr8.b38.gmap.gz       chrX_par2.b38.gmap.gz
+chr11.b38.gmap.gz  chr15.b38.gmap.gz  chr19.b38.gmap.gz  chr22.b38.gmap.gz  chr5.b38.gmap.gz  chr9.b38.gmap.gz       genetic_maps.b38_shapeit4.tar.gz
+chr12.b38.gmap.gz  chr16.b38.gmap.gz  chr1.b38.gmap.gz   chr2.b38.gmap.gz   chr6.b38.gmap.gz  chrX.b38.gmap.gz       hpm3snplist.bed
+chr13.b38.gmap.gz  chr17.b38.gmap.gz  chr20.b38.gmap.gz  chr3.b38.gmap.gz   chr7.b38.gmap.gz  chrX_par1.b38.gmap.gz  
 
 
 
