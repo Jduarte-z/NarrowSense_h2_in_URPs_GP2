@@ -20,16 +20,16 @@ Classically, since the mid-20th century, heritability of complex traits has been
 
 The discussion about the reasons behind the "missing heritability" problem are outside of the scope of this tutorial, but useful information could be found elsewhere (https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/). 
 
-Nowadays, multiple tools stand out to infer h2 in the field of quantitative population genomics. The BIG majority of these have being developed using data derived from European populations. However, recent adaptations for underrepresented and admixed populations have being designed. In this repository, an explicit step by step, hands-on adaptation is described. Specifically in the context of underrepresented cohorts within the field of Parkinson's Disease (PD). 
-
 ## Objective 
 
 This repository is intended to showcase the steps needed to undertake the estimation of narrow sense heritability (h2) in underrepresented populations using raw genetic, phenotypic and genome-wide association data. 
 
 ## Methods overview 
 
-There are several tools and ways to estimate h2, the vast majority developed using European populations. 
-We have collected relevant references of multiple of
+Nowadays, multiple tools stand out to infer h2 in the field of quantitative population genomics. The BIG majority of these have being developed using data derived from European populations. However, recent adaptations for underrepresented and admixed populations have being designed. In this repository, an explicit step by step, hands-on adaptation is described. Specifically in the context of underrepresented cohorts within the field of Parkinson's Disease (PD). 
+
+A comprehensive review of the methods available for h2 estimation is out of the scope of this repository. Relevant references to this topics have been gathered in this document: https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing (not mandatory to read but useful to satisfy curiosity, to a certain extent). However, this list is not intended to cover all the literature available and should NOT be considered comprehensive. 
+
 
 
 
