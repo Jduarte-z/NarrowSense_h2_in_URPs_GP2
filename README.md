@@ -1,6 +1,6 @@
-# Tutorial for estimation of H2 in Underrepresented Populations within the Global Parkinson's Genetics Program 
+# Tutorial for estimation of h2 in Underrepresented Populations within the Global Parkinson's Genetics Program 
 
-## Introduction of Heritability and related concepts
+## Introduction of narrow sense heritability (h2) and related concepts
 
 A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
 Y ~ A + D + I + E
