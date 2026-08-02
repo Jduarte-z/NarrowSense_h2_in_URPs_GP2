@@ -1,4 +1,4 @@
-# Tutorial for estimation of h2 in Underrepresented Populations within the Global Parkinson's Genetics Program 
+# Estimation of narrow sense heritability in Underrepresented Populations within the Global Parkinson's Genetics Program 
 
 ## Introduction of narrow sense heritability (h2) and related concepts
 
