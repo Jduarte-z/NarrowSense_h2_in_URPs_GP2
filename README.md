@@ -1,4 +1,4 @@
-# Estimating narrow sense heritability of Parkinson's Disease in Underrepresented Populations (URPs) within the Global Parkinson's Genetics Program (GP2)
+# Tutorial for estimation of narrow sense heritability in Underrepresented Populations (URPs) within the Global Parkinson's Genetics Program (GP2) 
 
 ## Introduction of Heritability and related concepts
 
