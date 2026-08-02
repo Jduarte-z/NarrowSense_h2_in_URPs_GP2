@@ -1,4 +1,40 @@
-# NarrowSense_h2_in_URPs_GP2
+# Estimating narrow sense heritability of Parkinson's Disease in Underrepresented Populations within the Global Parkinson's Genetics Program (GP2)
+
+## Introduction of Heritability and related concepts
+
+A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
+Y ~ A + D + I + E
+
+Where Y is the phenotype of interest and is a function of: "A", the additive genetic effects that contribute to the development of the trait; "D", the dominant genetic effects; "I", the epistatic interactions; and "E", the enviromental component. 
+
+Since these parameters tend to vary across individuals and populations. At any given cohort, and across individuals, the variance (V) of the parameters could be writen like this:
+
+VY ~ VA + VD + VI + VE
+
+Where VY is the total phenotypic variance, VA is the additive genetic variance, VD is the dominant genetic variance, VI is variance in epistatic interactions, and VE the environmnental variance. 
+
+Hence, the heritability of a phenotype or trait could be defined as the total phenotypic variance that could be explain by the variance in genetic effects (since variance is a squared metric, it is written like H2 and h2, see below discussion to know the difference). And is specific of the population and environment at which the individulas of interest belong.
+
+Heritability could be broken down into broad-sense (H2) and narrow-sense heritability (h2). Braod-sence heritability is essentially VA + VD + VI. And narrow-sense heritability referss exclusivelly to the additive genetic effects (VA). 
+Classically, since the mid-20th century, heritability of complex traits has been studied through twin studies, in which researchers gathered multiple monzygotic (MZ) and dizygotic (DZ) twins, and modeled how much extra phenotypic similarity in MZ pairs must be due to genetic variance (given their higher genetic sharing) compared to DZ twins, and partitioning the total phenotypic variance into genetic and environmental components. Furthermore, with the advent of genome-wide association studies, the possibility of estimating the heritability of complex traits through genotyping or sequencing data became available. However, GWAS heritability estimates have been classically focused on additive genetic effects of common single nucleotide polymorphisms (SNPs) (an intrinsic limitation of the most commonly used genotyping tools). Hence, for many traits and phenotypes, the heritability estimated through twin studies (closer to H2) versus the one estimated through genome-wide association studies (closer to h2) are discordant. Being twin data the one giving much higher estimates. A problem known as the "missing heritability of complex diseases".  
+
+The discussion about the reasons behind the "missing heritability" problem are outside of the scope of this tutorial, but useful information could be found elsewhere (https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/). 
+
+Nowadays, multiple tools stand out to infer h2 in the field of quantitative population genomics. The BIG majority of these have being developed using data derived from European populations. However, recent adaptations for underrepresented and admixed populations have being designed. In this repository, an explicit step by step, hands-on adaptation is described. Specifically in the context of underrepresented cohorts within the field of Parkinson's Disease (PD). 
+
+## Objective 
+
+This repository is intended to showcase the steps needed to undertake the estimation of narrow sense heritability (h2) in underrepresented populations using raw genetic, phenotypic and genome-wide association data. 
+
+## Methods overview 
+
+There are several tools and ways to estimate h2, the vast majority developed using European populations. 
+We have collected relevant references of multiple of
+
+
+
+
+
 
 The following tutorial is designed so the analysis could be run from the terminal, inside each site's corresponding computing cluser. 
 The folder structure and file naming showed in the following lines are just an example. 
