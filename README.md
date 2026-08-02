@@ -1369,7 +1369,7 @@ Here is an example for submitting one job per chromosome in a given computing cl
 #pipeline 4 reference panel 
 #Run it inside /working_directory/reference_panel
 import os
-for i in range(1,23):
+for i in range(22,23):
     mem = "25G" if i in {1,2,3,4,5} else "16G"
     runFolder = f"./chr{i}"    
     vcfFileIn = f"../genetic_data/imputed/chr{i}.dose.vcf.gz" 
@@ -1377,13 +1377,13 @@ for i in range(1,23):
     plink1_cmUpdatedFileOut = f"{runFolder}/chr{i}.plink1.extracted_cmUpdated"
     #required IID IID format for the keep list 
     keepList_unrelated = f"../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs_IIDs.txt"
-    covariateFile = f"../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.tsv"
+    covariateFile = f"../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs_PCs.tsv"
     #the high ld regions list was generated from the Rscript for the PCA pipeline
     HLA_regions = f"../pca_and_such/outFolder_pca_andSuch/highLD_regions_grindeLab_hg38.tsv"
     #this list was obtained from gwaslab github: https://github.com/Cloufield/gwaslab/tree/main/src/gwaslab/data/hapmap3_SNPs
     #here we use one that we pre-processed to match our pipeline requirements 
     hapMap3_bedList = f"./hpm3snplist.bed"
-    genotyped_varsList = f"./genotyped_varsList.txt"
+    genotyped_varsList = f"../pca_and_such/outFolder_pca_andSuch/input_setVarIDs.snplist"
 
     mkdirlogs = f"{runFolder}/logs"
     if not os.path.exists(mkdirlogs):
