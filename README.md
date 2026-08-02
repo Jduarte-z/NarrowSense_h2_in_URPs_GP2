@@ -21,6 +21,7 @@ Before starting we are assuming a couple of things:
 1. That your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations is described elsewhere (https://github.com/MataLabCCF/GWASQC).
 2. Your phenotype file is free of missing data.
 3. Your phenotype file is composed of the individual IDs (IIDs) of your samples, alongside the phenotype (PD status, control = 1, case =2) and basic covariates like Sex (male = 1, female = 2) and Age (quantitative variable).
+4. That you have plink2 already available in your machine
 
 Here is an example on how the phenotype file should look like:
 
@@ -307,7 +308,7 @@ if (bed_exists(pca_plink_prefix) && bed_exists(king_plink_prefix)) {
   #    When removeHighLDregions = "no", this whole step (and the tsv) is skipped and the maf filter reads straight from the re-ID'd input instead.
   if (removeHighLDregions == "yes") {
     # High-LD regions to exclude (Grinde lab, hg38, https://github.com/GrindeLab/PCA).
-    # Columns: chrom  start  end  label   (tab-separated, no header)
+    # Columns: chrom  st  end  label   (tab-separated, no header)
     highld_regions <- c(
       "1\t47761741\t51822307\tanderson1_price1_michigan1",
       "2\t129125957\t139525961\ttopmedLCT_michigan3_priveceliac1_price3_privepopres1_raskalct",
@@ -1221,7 +1222,7 @@ if __name__ == '__main__':
 ```
 </details>
 
-And then, inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the covariate file subsetted to unrelated pairs and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
+And then, inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the covariate file subsetted to unrelated pairs, a specific version of the covariate file that we need for downstream analysis and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
 
 <details>
 <summary><strong>View: <code>awk command</code></strong></summary>
@@ -1229,20 +1230,47 @@ And then, inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ crea
 <br>
 
 ```bash
-awk -v idfile="covariate_file_no_related_pairs_IIDs.txt" '
+awk \
+  -v idfile="covariate_file_no_related_pairs_IIDs.txt" \
+  -v pcfile="covariate_file_no_related_pairs_PCs.tsv" '
 BEGIN {
     FS = OFS = "\t"
+
+    # Empty the auxiliary output files before writing
     printf "" > idfile
     close(idfile)
+
+    printf "" > pcfile
+    close(pcfile)
 }
 
+# Read the IDs that should be excluded
 NR == FNR {
     sub(/\r$/, "", $1)
     remove[$1] = 1
     next
 }
 
+# Process the covariate-file header
 FNR == 1 {
+    # Store the position of every column by its name
+    for (i = 1; i <= NF; i++) {
+        column[$i] = i
+    }
+
+    # Locate PC1 through PC10 by column name
+    for (pc = 1; pc <= 10; pc++) {
+        pc_name = "PC" pc
+
+        if (!(pc_name in column)) {
+            print "ERROR: Missing column " pc_name > "/dev/stderr"
+            exit 1
+        }
+
+        pc_column[pc] = column[pc_name]
+    }
+
+    # Header for the complete covariate output
     printf "IID\tIID"
 
     for (i = 2; i <= NF; i++) {
@@ -1253,7 +1281,9 @@ FNR == 1 {
     next
 }
 
+# Retain only samples not listed for removal
 !($1 in remove) {
+    # Complete covariate file
     printf "%s\t%s", $1, $1
 
     for (i = 2; i <= NF; i++) {
@@ -1262,12 +1292,21 @@ FNR == 1 {
 
     printf "\n"
 
+    # IID-only file, without a header
     print $1, $1 > idfile
+
+    # IID IID PC1-PC10 file, without a header
+    printf "%s\t%s", $1, $1 > pcfile
+
+    for (pc = 1; pc <= 10; pc++) {
+        printf "\t%s", $(pc_column[pc]) > pcfile
+    }
+
+    printf "\n" > pcfile
 }
 ' NAToRA_output_pcrel_toRemove.txt \
   pcair_r2_covariates_merged.tsv \
   > covariate_file_no_related_pairs.tsv
-
 ```
 </details>
 
@@ -1279,11 +1318,15 @@ Reference panels for underrepresented populations are challenging to acquire (he
 However, this comes with its own challenges. Especially since the majority of our cohort's genetic data is genotype array data and the imputed data on top. So we must ensure the biggest coverage possible genome-wide, while preserving high quality variants. 
 
 The solution we propose to this particular problem consists on generating the list of imputed variants that carry an INFO R2 bigger or equal than 0.8, complemented by the union of genotyped variants and high-confidence variants identified through the hap map project.
+Underrepresented populations may suffer more frequently from low quality imputed variants, so in order to increase the coverate of the reference panel, we extracted the well imputed variants, and complemented them with the union of the genotyped variants and the hapmap3 variants, to then compute
+the adjusted LD scores.
 
 Additionally, we must also update the centimorgans map of our reference panel, since it is fundamental to compute the LD scores adjusted for global ancestry estimated derived from PCs. 
 
 
-#### Step 3.a download required data 
+#### Step 3.a download required data and software 
+
+... (pending the download of cov-ldsc to generate the ldscores)
 
 Alongside this repository, we have attached the files named hpm3snplist.bed and genetic_maps.b38_shapeit4.tar.gz, make sure to download them and put them inside the directory intended to construct the reference panel.
 
@@ -1300,7 +1343,9 @@ cd reference_panel
 
 wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
 
-tar -xvf genetic_maps.b38_shapeit4.tar.gz 
+tar -xvf genetic_maps.b38_shapeit4.tar.gz
+
+gunzip *
 
 wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/hpm3snplist.bed
 
@@ -1369,12 +1414,6 @@ for i in range(1,23):
         f"--set-all-var-ids @:#:\\$r:\\$a "
         f"--new-id-max-allele-len 100 "
         f"--out {runFolder}/chr{i}.step1 \n\n"
-
-        """underreprestented populations may suffer more frequently from low quality imputed variants,
-            so in order to increase the coverate of the reference panel, we extracted the well imputed variants, 
-            and complemented them with the union of the genotyped variants and the hapmap3 variants, to then compute 
-            the adjusted LD scores. 
-        """
 
         f"awk -F':' '{{print $1, $2, $2}}' {runFolder}/chr{i}.step1.snplist > {runFolder}/wellImputed_bed_varList.txt \n"
         f"awk -F':' '{{print $1, $2, $2}}' {genotyped_varsList} > {runFolder}/genotyped_bed_varList.txt \n"
