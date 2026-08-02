@@ -1271,7 +1271,7 @@ FNR == 1 {
     }
 
     # Header for the complete covariate output
-    printf "IID\tIID"
+    printf "FID\tIID"
 
     for (i = 2; i <= NF; i++) {
         printf "\t%s", $i
@@ -1295,7 +1295,7 @@ FNR == 1 {
     # IID-only file, without a header
     print $1, $1 > idfile
 
-    # IID IID PC1-PC10 file, without a header
+    # FID IID PC1-PC10 file, without a header
     printf "%s\t%s", $1, $1 > pcfile
 
     for (pc = 1; pc <= 10; pc++) {
