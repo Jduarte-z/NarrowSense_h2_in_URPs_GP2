@@ -47,6 +47,16 @@ The initial framework that was approved by GP2's Project Proposal, Approval, and
 These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with relevant references above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages and disadvantages as part of sensitivity analysis.
 
 
+## Hands-on Tutorial 
+
+### Prepare your machine for running 
+Before running cov-LDSC and GCTA-GREML is to get the programs and dependencies ready. 
+We are assuming that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this tutorial: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install 
+
+
+
+
+
    
 
 
