@@ -20,9 +20,13 @@ Classically, since the mid-20th century, heritability of complex traits has been
 
 The discussion about the reasons behind the "missing heritability" problem are outside of the scope of this tutorial, but useful information could be found elsewhere (https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/). 
 
-## Objective 
+## Objective of this tutorial
 
 This repository is intended to showcase the steps needed to undertake the estimation of narrow sense heritability (h2) in underrepresented populations using raw genetic, phenotypic and genome-wide association data. 
+
+## Objective of the project 
+
+Our principal aim is to layout the framework to start 
 
 ## Methods overview 
 
@@ -30,7 +34,7 @@ Nowadays, multiple tools stand out to infer h2 in the field of quantitative popu
 
 A comprehensive review of the methods available for h2 estimation is out of the scope of this repository. Relevant references to this topics have been gathered in this document: https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing (not mandatory to read but useful to satisfy curiosity, to a certain extent). However, this list is not intended to cover all the literature available and should NOT be considered comprehensive. 
 
-
+For the purposes of this project, 
 
 
 
