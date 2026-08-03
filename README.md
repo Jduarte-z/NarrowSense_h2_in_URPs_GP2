@@ -1,6 +1,6 @@
 # Estimation of narrow sense heritability in Underrepresented Populations within the Global Parkinson's Genetics Program 
 
-## Introduction of narrow sense heritability (h2) and related concepts
+## Brief introduction of important concepts
 
 A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
 Y ~ A + D + I + E
@@ -26,7 +26,8 @@ This repository is intended to showcase the steps needed to undertake the estima
 
 ## Objective of the project 
 
-Our principal aim is to layout the framework to start 
+Our principal aim is to 1) layout the analytical framework to estimate h2 explained by single nucleotide polymorphisms in underrepresented populations; 2) estimate the h2 corresponding to genome-wide significant loci discovered so far; and 3) provide a landscape of the potential heterogeneity and challenges regarding this estimations in underrepresented populations in light of current European-dominant field. 
+
 
 ## Methods overview 
 
@@ -34,7 +35,16 @@ Nowadays, multiple tools stand out to infer h2 in the field of quantitative popu
 
 A comprehensive review of the methods available for h2 estimation is out of the scope of this repository. Relevant references to this topics have been gathered in this document: https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing (not mandatory to read but useful to satisfy curiosity, to a certain extent). However, this list is not intended to cover all the literature available and should NOT be considered comprehensive. 
 
-For the purposes of this project, 
+The initial framework that was approved by GP2's Project Proposal, Approval, and Execution Working Group consisted on benchmarking two methods:
+
+1) Covariate Linkage Disequilibrium Score regression (cov-LDSC), that corresponds to the adaptation of the classic LDSC method but for admixed/underrepresented populations. Classic LDSC is designed to work only with GWAS summary statistics and a reference panel LD scores. However, since a reference panel is usually not available for URPs and some of the mathematical assumptions are violated in the presence of admixture, cov-LDSC solves these issues by computing an in-sample reference panel and adjusting the LD scores by genetic principal component analysis. 
+
+2) Genome-wide complex trait analysis (GCTA) Genomic relatedness matrix (GRM) restricted maximum likelihood (GREML), that would be used as a complementary estimate to the ones provided by cov-LDSC. Since at lower sample sizes (an usual scenario for URPs), would be computationally feasible and potentially provide a useful alternative to analyze, because it includes raw individual data in the estimation of h2 itself, contrary to cov-LDSC [note: cov-LDSC also uses raw individual level data, but in the construction of the in-sample reference panel, the calculations themselves only use the LD scores and summary statistics, aka, de-identified data). 
+
+These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with related reference above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools as part of sensitivity analysis. 
+
+
+   
 
 
 
