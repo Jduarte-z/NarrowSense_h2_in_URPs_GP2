@@ -26,7 +26,10 @@ This repository is intended to showcase the steps needed to undertake the estima
 
 ## Objective of the project 
 
-Our principal aim is to 1) layout the analytical framework to estimate h2 explained by single nucleotide polymorphisms in underrepresented populations; 2) estimate the h2 corresponding to genome-wide significant loci discovered so far; and 3) provide a landscape of the potential heterogeneity and challenges regarding this estimations in underrepresented populations in light of current European-dominant field. 
+Our main aims are:
+1) layout the analytical framework to estimate h2 explained by single nucleotide polymorphisms in underrepresented populations. 
+2) estimate the h2 corresponding to genome-wide significant loci discovered so far.
+3) provide a landscape of the potential heterogeneity and challenges regarding this estimations in underrepresented populations in light of current European-dominant field. 
 
 
 ## Methods overview 
