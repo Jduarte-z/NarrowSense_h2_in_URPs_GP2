@@ -1462,6 +1462,7 @@ for i in range(22,23):
         f"plink2 --vcf {vcfFileIn} "
         f"--double-id "
         f"--extract bed1 {runFolder}/combined_bed_varList.txt "
+        f"--exclude range {HLA_regions} "
         f"--keep {keepList_unrelated} " #in IID_IID format
         f"--keep-allele-order "
         f"--make-bed --out {plink1FileOut} "
