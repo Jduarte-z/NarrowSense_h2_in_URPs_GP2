@@ -44,7 +44,7 @@ The initial framework that was approved by GP2's Project Proposal, Approval, and
 
 2) Genome-wide complex trait analysis (GCTA) Genomic relatedness matrix (GRM) restricted maximum likelihood (GREML), that would be used as a complementary estimate to the ones provided by cov-LDSC. Since at lower sample sizes (an usual scenario for URPs), would be computationally feasible and potentially provide a useful alternative estimate to analyze, because it includes raw individual data in the estimation of h2 itself, contrary to cov-LDSC [note: cov-LDSC also uses raw individual level data, but in the construction of the in-sample reference panel, the calculations themselves only use the LD scores and summary statistics, aka, de-identified data). 
 
-These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with related reference above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools as part of sensitivity analysis. 
+These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with relevant references above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages and disadvantages as part of sensitivity analysis.
 
 
    
