@@ -178,7 +178,7 @@ sample5ID	2	2	72
 
 <details>
 <summary><strong>Click to expand Step 2.a - PCs</strong></summary>
-##### PCs 
+
 Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
 For running cov-LDSC we must restrict ourselves to an unrelated dataset, and require global ancestry estimates of the cohorts through principal component analysis. 
@@ -851,7 +851,7 @@ however, we advise you to keep the default parameters as they are and only chang
 <details>
 <summary><strong>Click to expand Step 2.b - Remove Unrelated Individuals</strong></summary>
 	
-##### Unrelated dataset
+
 Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
 
 In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (https://spj.science.org/doi/10.1016/j.csbj.2022.04.009). 
@@ -1466,8 +1466,10 @@ FNR == 1 {
 </details>
 
 
-### Step 3 - construct the reference panel 
-
+#### Step 3 - construct the reference panel 
+<details>
+<summary><strong>Click to expand Step 3</strong></summary>
+	
 Reference panels for underrepresented populations are challenging to acquire (hence the name "underrepresented"). Hence, a convenient way to overcome this problem is use each cohort's own genetic data to construct an in house reference panel. 
 
 However, this comes with its own challenges. Especially since the majority of our cohort's genetic data is genotype array data and the imputed data on top. So we must ensure the biggest coverage possible genome-wide, while preserving high quality variants. 
@@ -1477,11 +1479,6 @@ Underrepresented populations may suffer more frequently from low quality imputed
 the adjusted LD scores.
 
 Additionally, we must also update the centimorgans map of our reference panel, since it is fundamental to compute the LD scores adjusted for global ancestry estimated derived from PCs. 
-
-
-#### Step 3.a download required data and software 
-
-... (pending the download of cov-ldsc to generate the ldscores)
 
 Alongside this repository, we have attached the files named hpm3snplist.bed and genetic_maps.b38_shapeit4.tar.gz, make sure to download them and put them inside the directory intended to construct the reference panel.
 
@@ -1607,7 +1604,8 @@ for i in range(22,23):
     os.system(f"sbatch {runFolder}/logs/{i}convert_vcf_toPlink1_computeCovLDscores.pbs")
 ```
 </details>
-
-
 </details>
+
+
+</details> 
 
