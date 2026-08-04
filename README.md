@@ -2,7 +2,7 @@
 
 ## Brief introduction of important concepts, objectives and methods
 <details>
-<summary><strong>Click to expand</strong></summary>
+<summary><strong>Click to expand text</strong></summary>
 
 ## Intro
 A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
@@ -54,7 +54,8 @@ These two methods could be considered amongst the most popular ones in the liter
 
 ### Prepare your machine for running 
 <details>
-<summary><strong>Click to expand</strong></summary>
+<summary><strong>Click to expand requirements</strong></summary>
+	
 Before running cov-LDSC and GCTA-GREML we need to get the programs and dependencies ready. 
 I am assuming here that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
 
@@ -137,7 +138,8 @@ Total time elapsed: 0.0s
 
 ### Run Cov-LDSC
 <details>
-<summary><strong>Click to expand</strong></summary>
+<summary><strong>Click to expand steps</strong></summary>
+
 Cov-LDSC estimates SNP heritability conditional on the global ancestry PCs
 
 For running cov-LDSC we need a handful of things:
@@ -147,6 +149,8 @@ For running cov-LDSC we need a handful of things:
 
 
 #### Step 1 - get your genotype array and phenotype/covariate data
+<details>
+<summary><strong>Click to expand Step 1</strong></summary>
 	
 Before starting we are assuming a couple of things:
 
@@ -167,9 +171,13 @@ sample4ID	2	2	66 <br>
 sample5ID	2	2	72
 </details>
 
+</details>
+
 	
 #### Step 2 - get the genetic principal components and unrelated dataset 
 
+<details>
+<summary><strong>Click to expand Step 2.a - PCs</strong></summary>
 ##### PCs 
 Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
@@ -838,8 +846,12 @@ however, we advise you to keep the default parameters as they are and only chang
 
 ... (discussion here on how to interpret the results and the plots.)
 
+</details>
 
-##### Unrelated individuals 
+<details>
+<summary><strong>Click to expand Step 2.b - Remove Unrelated Individuals</strong></summary>
+	
+##### Unrelated dataset
 Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
 
 In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (https://spj.science.org/doi/10.1016/j.csbj.2022.04.009). 
@@ -1357,7 +1369,14 @@ if __name__ == '__main__':
 ```
 </details>
 
-And then, inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the covariate file subsetted to unrelated pairs, a specific version of the covariate file that we need for downstream analysis and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
+</details>
+
+<details>
+<summary><strong>Click to expand Step 2.c - Create required covariate file formats</strong></summary>
+
+Different tools require different formats of the headers, for example cov-ldsc requires a version of the covariate file without a header and the columns: FID IID PC1-10. Then GCTA GREML requires the phenotype, quantitative covariates and categorical covariates in different files, etc. Hence, you can use this awk command to generate them all. 
+
+Inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the covariate file subsetted to unrelated pairs, a specific version of the covariate file that we need for downstream analysis and the keep list of IDs to retain (relevant for downstream steps). Since in the construction of the reference panel and the computation of LD scores, we will need this list:
 
 <details>
 <summary><strong>View: <code>awk command</code></strong></summary>
@@ -1443,6 +1462,7 @@ FNR == 1 {
   pcair_r2_covariates_merged.tsv \
   > covariate_file_no_related_pairs.tsv
 ```
+</details>
 </details>
 
 
