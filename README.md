@@ -1,7 +1,8 @@
 # Estimation of narrow sense heritability in Underrepresented Populations within the Global Parkinson's Genetics Program 
 
-## Brief introduction of important concepts
-
+## Brief introduction of important concepts, objectives and methods
+<details>
+<summary><strong>Click to expand the introduction</strong></summary>
 A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
 Y ~ A + D + I + E
 
@@ -45,27 +46,52 @@ The initial framework that was approved by GP2's Project Proposal, Approval, and
 2) Genome-wide complex trait analysis (GCTA) Genomic relatedness matrix (GRM) restricted maximum likelihood (GREML), that would be used as a complementary estimate to the ones provided by cov-LDSC. Since at lower sample sizes (an usual scenario for URPs), would be computationally feasible and potentially provide a useful alternative estimate to analyze, because it includes raw individual data in the estimation of h2 itself, contrary to cov-LDSC [note: cov-LDSC also uses raw individual level data, but in the construction of the in-sample reference panel, the calculations themselves only use the LD scores and summary statistics, aka, de-identified data). 
 
 These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with relevant references above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages and disadvantages as part of sensitivity analysis.
-
+</details>
 
 ## Hands-on Tutorial 
 
-### Prepare your machine for running 
+### Step 0: Prepare your machine for running 
 Before running cov-LDSC and GCTA-GREML is to get the programs and dependencies ready. 
-We are assuming that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this tutorial: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install 
+We are assuming that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
 
+Just FYI I was working with conda 26.5.3 version. 
 
+For downstream analysis we will need two conda environments; 1) for LDSC and cov-LDSC since they were written in python2; and 2) another one containing the rest of our programs and dependencies needed. 
 
-
-
-   
-
-
-
-
-
-The following tutorial is designed so the analysis could be run from the terminal, inside each site's corresponding computing cluser. 
+The following tutorial is designed so the analysis could be run from the terminal, within each site's corresponding computing cluser. 
 The folder structure and file naming showed in the following lines are just an example. 
-However, we encourage you to follow the structure as much as you can. The names are thought to be as convenient as possible for a (hopefully) smooth run. 
+However, we encourage you to follow the structure as much as you can. Because if you follow it, you will not have to change any path or file names an (hopefully) have smooth run. 
+
+Let's start with the folder structure and programs preparation. Here an example:
+```
+pwd
+/home/duartej3/working_directory_h2
+
+mkdir programs
+
+cd programs
+
+#get the github for cov-ldsc
+git clone https://github.com/immunogenomics/cov-ldsc.git
+
+ls
+cov-ldsc
+
+#then get the github for the classic ldsc and create the conda environment
+#the conda environments suits both, cov-ldsc to create the reference panel with the LD scores
+#and then to run the ldsc regression to calculate h2
+
+git clone https://github.com/bulik/ldsc.git
+
+ls
+cov-ldsc ldsc
+
+cd ldsc
+
+#creating the environment takes a couple minutes
+conda env create --file environment.yml
+
+```
 
 ### Step 1 - install all the required programs and packages through miniconda3
 ... (pending)
