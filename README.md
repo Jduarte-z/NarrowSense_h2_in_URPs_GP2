@@ -52,7 +52,7 @@ These two methods could be considered amongst the most popular ones in the liter
 
 ## Hands-on Tutorial 
 
-### Step 0: Prepare your machine for running 
+### Prepare your machine for running 
 <details>
 <summary><strong>Click to expand</strong></summary>
 Before running cov-LDSC and GCTA-GREML we need to get the programs and dependencies ready. 
