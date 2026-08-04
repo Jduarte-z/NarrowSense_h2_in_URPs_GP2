@@ -51,6 +51,8 @@ These two methods could be considered amongst the most popular ones in the liter
 ## Hands-on Tutorial 
 
 ### Step 0: Prepare your machine for running 
+<details>
+<summary><strong>Click to expand</strong></summary>
 Before running cov-LDSC and GCTA-GREML is to get the programs and dependencies ready. 
 We are assuming that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
 
@@ -64,35 +66,73 @@ However, we encourage you to follow the structure as much as you can. Because if
 
 Let's start with the folder structure and programs preparation. Here an example:
 ```
-pwd
+
+(base) [duartej3@lri-r06 working_directory_h2]$ pwd
 /home/duartej3/working_directory_h2
 
-mkdir programs
+#in case you are wondering, the "(base)" of my terminal only indicates that my base environment in conda is active. 
 
-cd programs
+(base) [duartej3@lri-r06 working_directory_h2]$ mkdir programs
+
+(base) [duartej3@lri-r06 working_directory_h2]$ cd programs/ cd programs
 
 #get the github for cov-ldsc
 git clone https://github.com/immunogenomics/cov-ldsc.git
 
-ls
-cov-ldsc
+(base) [duartej3@lri-r06 programs]$ ls 
+cov-ldsc 
 
 #then get the github for the classic ldsc and create the conda environment
 #the conda environments suits both, cov-ldsc to create the reference panel with the LD scores
 #and then to run the ldsc regression to calculate h2
 
-git clone https://github.com/bulik/ldsc.git
+(base) [duartej3@lri-r06 programs]$ git clone https://github.com/bulik/ldsc.git
 
-ls
+(base) [duartej3@lri-r06 programs]$ ls
 cov-ldsc ldsc
 
-cd ldsc
+(base) [duartej3@lri-r06 programs]$ cd ldsc
 
 #creating the environment takes a couple minutes
-conda env create --file environment.yml
+(base) [duartej3@lri-r06 programs]$ conda env create --file environment.yml
+
+#once it is done you can activate the environment to check it is working
+(base) [duartej3@lri-r06 ldsc]$ conda activate ldsc 
+(ldsc) [duartej3@lri-r06 ldsc]$
+#see how "(ldsc)" is activated now
+#then check the main script is working (remember, it is python2):
+(ldsc) [duartej3@lri-r06 ldsc]$ python2 ldsc.py 
+*********************************************************************
+* LD Score Regression (LDSC)
+* Version 1.0.1
+* (C) 2014-2019 Brendan Bulik-Sullivan and Hilary Finucane
+* Broad Institute of MIT and Harvard / MIT Department of Mathematics
+* GNU General Public License v3
+*********************************************************************
+Call: 
+./ldsc.py \
+
+Beginning analysis at Tue Aug  4 09:05:03 2026
+*********************************************************************
+* LD Score Regression (LDSC)
+* Version 1.0.1
+* (C) 2014-2019 Brendan Bulik-Sullivan and Hilary Finucane
+* Broad Institute of MIT and Harvard / MIT Department of Mathematics
+* GNU General Public License v3
+*********************************************************************
+Call: 
+./ldsc.py \
+
+Error: no analysis selected.
+ldsc.py -h describes options.
+Analysis finished at Tue Aug  4 09:05:03 2026
+Total time elapsed: 0.0s
+
+#it worked!
+
 
 ```
-
+</details>
 ### Step 1 - install all the required programs and packages through miniconda3
 ... (pending)
 
