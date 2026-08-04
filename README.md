@@ -129,12 +129,11 @@ Analysis finished at Tue Aug  4 09:05:03 2026
 Total time elapsed: 0.0s
 
 #it worked!
-
-
 ```
 </details>
 
-### Step 1 - install all the required programs and packages through miniconda3
+
+### Step 1: - install all the required programs and packages through miniconda3
 ... (pending)
 
 
