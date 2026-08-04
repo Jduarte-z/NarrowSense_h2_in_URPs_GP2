@@ -1605,7 +1605,7 @@ for i in range(22,23):
 ```
 </details>
 </details>
-
+</details> 
 
 <details>
 <summary><strong>Run GCTA GREML</strong></summary>
@@ -1616,5 +1616,5 @@ for i in range(22,23):
 
 </details>
 
-</details> 
+
 
