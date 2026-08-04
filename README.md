@@ -136,7 +136,8 @@ Total time elapsed: 0.0s
 
 
 ### Run Cov-LDSC
-
+<details>
+<summary><strong>Click to expand</strong></summary>
 Cov-LDSC estimates SNP heritability conditional on the global ancestry PCs
 
 For running cov-LDSC we need a handful of things:
@@ -146,8 +147,6 @@ For running cov-LDSC we need a handful of things:
 
 
 #### Step 1 - get your genotype array and phenotype/covariate data
-<details>
-<summary><strong>Click to expand</strong></summary>
 	
 Before starting we are assuming a couple of things:
 
@@ -168,11 +167,8 @@ sample4ID	2	2	66 <br>
 sample5ID	2	2	72
 </details>
 
-<details>
 	
 #### Step 2 - get the genetic principal components and unrelated dataset 
-<details>
-<summary><strong>Click to expand</strong></summary>
 
 ##### PCs 
 Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
@@ -1593,4 +1589,5 @@ for i in range(22,23):
 </details>
 
 
+</details>
 
