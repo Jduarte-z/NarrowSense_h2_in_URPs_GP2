@@ -136,7 +136,7 @@ Total time elapsed: 0.0s
 </details>
 
 
-### Run Cov-LDSC
+### Cov-LDSC
 <details>
 <summary><strong>Click to expand steps</strong></summary>
 
@@ -1607,6 +1607,7 @@ for i in range(22,23):
 </details>
 </details> 
 
+### GCTA GREML
 <details>
 <summary><strong>Run GCTA GREML</strong></summary>
 
