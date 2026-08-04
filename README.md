@@ -47,7 +47,7 @@ The initial framework that was approved by GP2's Project Proposal, Approval, and
 
 2) Genome-wide complex trait analysis (GCTA) Genomic relatedness matrix (GRM) restricted maximum likelihood (GREML), that would be used as a complementary estimate to the ones provided by cov-LDSC. Since at lower sample sizes (an usual scenario for URPs), would be computationally feasible and potentially provide a useful alternative estimate to analyze, because it includes raw individual data in the estimation of h2 itself, contrary to cov-LDSC [note: cov-LDSC also uses raw individual level data, but in the construction of the in-sample reference panel, the calculations themselves only use the LD scores and summary statistics, aka, de-identified data). 
 
-These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (se the document with relevant references above). So as the project advances and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages and disadvantages as part of sensitivity analysis.
+These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (see the document with relevant references above). So as the project advances, and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages, and disadvantages as part of sensitivity analysis.
 </details>
 
 ## Hands-on Tutorial 
@@ -55,16 +55,16 @@ These two methods could be considered amongst the most popular ones in the liter
 ### Step 0: Prepare your machine for running 
 <details>
 <summary><strong>Click to expand</strong></summary>
-Before running cov-LDSC and GCTA-GREML is to get the programs and dependencies ready. 
-We are assuming that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
+Before running cov-LDSC and GCTA-GREML we need to get the programs and dependencies ready. 
+I am assuming here that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
 
-Just FYI I was working with conda 26.5.3 version. 
+I don't think it will make that much of a difference working with slightly newer or older versions of conda, but just FYI, I was working with conda 26.5.3 version.
 
-For downstream analysis we will need two conda environments; 1) for LDSC and cov-LDSC since they were written in python2; and 2) another one containing the rest of our programs and dependencies needed. 
+For downstream analysis we will need two conda environments; 1) for LDSC and cov-LDSC since they were written in python2; and 2) one containing the rest of our programs and dependencies needed. 
 
-The following tutorial is designed so the analysis could be run from the terminal, within each site's corresponding computing cluser. 
+The following tutorial is designed so the analysis could be run from the terminal, within each site's corresponding computing cluster. 
 The folder structure and file naming showed in the following lines are just an example. 
-However, we encourage you to follow the structure as much as you can. Because if you follow it, you will not have to change any path or file names an (hopefully) have smooth run. 
+However, we encourage you to follow the structure as much as you can. Because if you follow it, you will not have to change any path or file names, and (hopefully) have smooth run. 
 
 Let's start with the folder structure and programs preparation. Here an example:
 ```
@@ -135,18 +135,20 @@ Total time elapsed: 0.0s
 </details>
 
 
-### Step 1: - install all the required programs and packages through miniconda3
-... (pending)
+### Run Cov-LDSC
 
-
-Cov-LDSC estimates SNP heritability conditional on the global ancestry PC
+Cov-LDSC estimates SNP heritability conditional on the global ancestry PCs
 
 For running cov-LDSC we need a handful of things:
 1. To assemble our reference LD panel (here using the genetic data from our respective cohorts).
-2. To compute the LD scores from the reference panel adjusting them by the principal components included in our genome-wide association studies 
+2. To compute the LD scores from the reference panel adjusting them by the principal components included in our genome-wide association studies.
+3. Regress effect sizes onto the LD scores to get the LDSC intercept and the values for h2 (running the proper LDSC regression) 
 
 
-### Step 2 - get your genotype array and phenotype/covariate data
+#### Step 1 - get your genotype array and phenotype/covariate data
+<details>
+<summary><strong>Click to expand</strong></summary>
+	
 Before starting we are assuming a couple of things:
 
 1. That your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations is described elsewhere (https://github.com/MataLabCCF/GWASQC).
@@ -166,7 +168,13 @@ sample4ID	2	2	66 <br>
 sample5ID	2	2	72
 </details>
 
-#### Step 2.a - run the PCA pipeline 
+<details>
+	
+#### Step 2 - get the genetic principal components and unrelated dataset 
+<details>
+<summary><strong>Click to expand</strong></summary>
+
+##### PCs 
 Run the following Rscript in order to compute the principal components through PC-AiR (https://onlinelibrary.wiley.com/doi/10.1002/gepi.21896) and PC-Relate (http://dx.doi.org/10.1016/j.ajhg.2015.11.022.) methods (available through the R package GENESIS.
 
 For running cov-LDSC we must restrict ourselves to an unrelated dataset, and require global ancestry estimates of the cohorts through principal component analysis. 
@@ -835,7 +843,7 @@ however, we advise you to keep the default parameters as they are and only chang
 ... (discussion here on how to interpret the results and the plots.)
 
 
-#### Step 2.b - get the list of unrelated individuals 
+##### Unrelated individuals 
 Using the GRM derived from the PC-AiR and PC-Relate runs, we can more accurately estimate the amount of related individuals. In our cohorts, this approach tends to derive a slightly higher amount of related individuals to be removed, mainly because more accurate kinship estimates compared to classic methods. 
 
 In order to remove the least amount of samples as possible, we are going to use the logic behind network-based relatedness-pruning, using the tool named NAToRA (https://spj.science.org/doi/10.1016/j.csbj.2022.04.009). 
