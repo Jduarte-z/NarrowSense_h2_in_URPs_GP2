@@ -2,7 +2,7 @@
 
 ## Brief introduction of important concepts, objectives and methods
 <details>
-<summary><strong>Click to expand the introduction</strong></summary>
+<summary><strong>Click to expand</strong></summary>
 A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
 Y ~ A + D + I + E
 
