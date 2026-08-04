@@ -133,6 +133,7 @@ Total time elapsed: 0.0s
 
 ```
 </details>
+
 ### Step 1 - install all the required programs and packages through miniconda3
 ... (pending)
 
