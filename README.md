@@ -55,33 +55,45 @@ These two methods could be considered amongst the most popular ones in the liter
 ### Prepare your machine for running 
 <details>
 <summary><strong>Click to expand requirements</strong></summary>
+
 	
 Before running cov-LDSC and GCTA-GREML we need to get the programs and dependencies ready. 
 I am assuming here that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
 
 I don't think it will make that much of a difference working with slightly newer or older versions of conda, but just FYI, I was working with conda 26.5.3 version.
 
-For downstream analysis we will need two conda environments; 1) for LDSC and cov-LDSC since they were written in python2; and 2) one containing the rest of our programs and dependencies needed. 
+For downstream analysis we will need to; 1)create a conda environment for LDSC and cov-LDSC since they were written in python2; 2) download the executables for plink1, plink2 and GCTA (for these we are going to use hardoced relative paths so we don't mess around other possible versions that you may have in your machine) and 3) another conda environment the rest of our programs and dependencies needed for running specific parts of the pipeline (we will get to install them as we get to them). 
 
 The following tutorial is designed so the analysis could be run from the terminal, within each site's corresponding computing cluster. 
 The folder structure and file naming showed in the following lines are just an example. 
-However, we encourage you to follow the structure as much as you can. Because if you follow it, you will not have to change any path or file names, and (hopefully) have smooth run. 
+However, we encourage you to follow the structure as much as you can. Because if you follow it, you will not have to change any relative path or file names, and hopefully have smooth run 😅. 
 
-Let's start with the folder structure and programs preparation. Here an example:
+Let's start with the folder structure and programs preparation. 
+
+First, for cov-LDSC and LDSC 
+
 ```
 
 (base) [duartej3@lri-r06 working_directory_h2]$ pwd
 /home/duartej3/working_directory_h2
 
+#notice how I created a dedicated folder named working_directory_h2/ within my home directory.
+#in order to replicate the steps in your machine I encourage you to do the same.
+#for the analysis itself we will be using here relative paths, so they should work if you use the same names as here.
+
 #in case you are wondering, the "(base)" of my terminal only indicates that my base environment in conda is active. 
 
+#then lets create a folder to store all the programs that we need to download from the internet
 (base) [duartej3@lri-r06 working_directory_h2]$ mkdir programs
 
-(base) [duartej3@lri-r06 working_directory_h2]$ cd programs/ cd programs
+#lets go inside the foldeer
+(base) [duartej3@lri-r06 working_directory_h2]$ cd programs/ 
 
+#lets start to download them
 #get the github for cov-ldsc
 git clone https://github.com/immunogenomics/cov-ldsc.git
 
+#check it got downloaded
 (base) [duartej3@lri-r06 programs]$ ls 
 cov-ldsc 
 
@@ -94,16 +106,21 @@ cov-ldsc
 (base) [duartej3@lri-r06 programs]$ ls
 cov-ldsc ldsc
 
+#get inside the folder that gets cloned into your machine
 (base) [duartej3@lri-r06 programs]$ cd ldsc
 
+#create the conda environment with the requirements the authors of LDSC recommend 
 #creating the environment takes a couple minutes
 (base) [duartej3@lri-r06 programs]$ conda env create --file environment.yml
 
 #once it is done you can activate the environment to check it is working
 (base) [duartej3@lri-r06 ldsc]$ conda activate ldsc 
 (ldsc) [duartej3@lri-r06 ldsc]$
-#see how "(ldsc)" is activated now
+
+#see how "(ldsc)" is activated now?
+
 #then check the main script is working (remember, it is python2):
+
 (ldsc) [duartej3@lri-r06 ldsc]$ python2 ldsc.py 
 *********************************************************************
 * LD Score Regression (LDSC)
@@ -131,8 +148,142 @@ ldsc.py -h describes options.
 Analysis finished at Tue Aug  4 09:05:03 2026
 Total time elapsed: 0.0s
 
-#it worked!
+#it worked! forget the error message since we are not running the tool itself right now, you can also try: python2 ldsc.py -h
+#to check the flags available, just another way of showing that the conda environment and python versions are working appropriately. 
 ```
+
+Now lets download the main programs that will be needed. 
+In particular, we are going to download plink1, plink2 and GCTA. We will need a couple of extra packages for specific parts of the analysis, but we will get those as we get to use them. 
+
+```
+# go to the programs folder
+(ldsc) [duartej3@lri-r04 working_directory_h2]$ cd /home/duartej3/working_directory_h2/programs/
+
+#you can deactivate the previous conda environment by:
+(ldsc) [duartej3@lri-r04 programs]$ conda deactivate 
+(base) [duartej3@lri-r04 programs]$ 
+
+#see how we returned to have only the (base activated)
+
+
+#download GCTA and make sure it works
+(base) [duartej3@lri-r04 programs]$ wget https://yanglab.westlake.edu.cn/software/gcta/bin/gcta-1.95.3-linux-x86_64.zip 
+--2026-08-05 16:04:51--  https://yanglab.westlake.edu.cn/software/gcta/bin/gcta-1.95.3-linux-x86_64.zip
+Resolving yanglab.westlake.edu.cn (yanglab.westlake.edu.cn)... 183.131.27.142
+Connecting to yanglab.westlake.edu.cn (yanglab.westlake.edu.cn)|183.131.27.142|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 99147914 (95M) [application/zip]
+Saving to: ‘gcta-1.95.3-linux-x86_64.zip’
+
+gcta-1.95.3-linux-x86_64.zip                           100%[==========================================================================================================================>]  94.55M  15.1MB/s    in 7.3s    
+
+2026-08-05 16:05:00 (13.0 MB/s) - ‘gcta-1.95.3-linux-x86_64.zip’ saved [99147914/99147914]
+
+#unzip the file
+(base) [duartej3@lri-r04 programs]$ unzip gcta-1.95.3-linux-x86_64.zip 
+Archive:  gcta-1.95.3-linux-x86_64.zip
+   creating: gcta-1.95.3-linux-x86_64/
+  inflating: __MACOSX/._gcta-1.95.3-linux-x86_64  
+  inflating: gcta-1.95.3-linux-x86_64/.DS_Store  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._.DS_Store  
+  inflating: gcta-1.95.3-linux-x86_64/test.bim  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._test.bim  
+  inflating: gcta-1.95.3-linux-x86_64/MIT_License.txt  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._MIT_License.txt  
+  inflating: gcta-1.95.3-linux-x86_64/gcta  
+  inflating: gcta-1.95.3-linux-x86_64/test.fam  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._test.fam  
+  inflating: gcta-1.95.3-linux-x86_64/README.txt  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._README.txt  
+  inflating: gcta-1.95.3-linux-x86_64/test.bed  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._test.bed  
+  inflating: gcta-1.95.3-linux-x86_64/test.phen  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._test.phen  
+   creating: gcta-1.95.3-linux-x86_64/gcta-mcp/
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/._gcta-mcp  
+  inflating: gcta-1.95.3-linux-x86_64/gcta-mcp/server.py  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/gcta-mcp/._server.py  
+  inflating: gcta-1.95.3-linux-x86_64/gcta-mcp/requirements.txt  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/gcta-mcp/._requirements.txt  
+  inflating: gcta-1.95.3-linux-x86_64/gcta-mcp/pyproject.toml  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/gcta-mcp/._pyproject.toml  
+  inflating: gcta-1.95.3-linux-x86_64/gcta-mcp/README.md  
+  inflating: __MACOSX/gcta-1.95.3-linux-x86_64/gcta-mcp/._README.md
+
+#make sure the executable works:
+(base) [duartej3@lri-r04 programs]$ ./gcta-1.95.3-linux-x86_64/gcta 
+*******************************************************************
+* Genome-wide Complex Trait Analysis (GCTA)
+* version v1.95.3 Linux
+* Built at Jul 21 2026 11:23:29, by GCC 8.4
+* (C) 2010-present, Yang Lab, Westlake University
+* Please report bugs to Jian Yang <jian.yang@westlake.edu.cn>
+*******************************************************************
+Analysis started at 16:07:23 EDT on Wed Aug 05 2026.
+Hostname: lri-r04.lerner.ccf.org
+
+Error: no analysis has been launched by the option(s)
+Please see online documentation at https://yanglab.westlake.edu.cn/software/gcta/
+
+
+#now lets do the same think with the latest version of plink2 and plink1
+
+#for plink2:
+
+(base) [duartej3@lri-r04 programs]$ https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260504.zip^C
+(base) [duartej3@lri-r04 programs]$ wget https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260504.zip
+--2026-08-05 16:11:20--  https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260504.zip
+Resolving s3.amazonaws.com (s3.amazonaws.com)... 16.15.207.127, 16.15.212.183, 16.15.229.114, ...
+Connecting to s3.amazonaws.com (s3.amazonaws.com)|16.15.207.127|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 7619141 (7.3M) [application/zip]
+Saving to: ‘plink2_linux_x86_64_20260504.zip’
+
+plink2_linux_x86_64_20260504.zip                       100%[==========================================================================================================================>]   7.27M  43.4MB/s    in 0.2s    
+
+2026-08-05 16:11:21 (43.4 MB/s) - ‘plink2_linux_x86_64_20260504.zip’ saved [7619141/7619141]
+
+#then unzip it
+(base) [duartej3@lri-r04 programs]$ unzip plink2_linux_x86_64_20260504.zip 
+Archive:  plink2_linux_x86_64_20260504.zip
+  inflating: plink2                  
+  inflating: vcf_subset              
+  inflating: intel-simplified-software-license.txt
+
+#and test it works
+(base) [duartej3@lri-r04 programs]$ ./plink2 --version
+PLINK v2.0.0-a.7.1LM 64-bit Intel (4 May 2026)
+
+#now with plink1:
+(base) [duartej3@lri-r04 programs]$ wget https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20250819.zip
+--2026-08-05 16:13:53--  https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20250819.zip
+Resolving s3.amazonaws.com (s3.amazonaws.com)... 16.15.212.57, 16.15.246.0, 16.15.253.78, ...
+Connecting to s3.amazonaws.com (s3.amazonaws.com)|16.15.212.57|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 6321240 (6.0M) [application/zip]
+Saving to: ‘plink_linux_x86_64_20250819.zip’
+
+plink_linux_x86_64_20250819.zip                        100%[==========================================================================================================================>]   6.03M  33.8MB/s    in 0.2s    
+
+2026-08-05 16:13:54 (33.8 MB/s) - ‘plink_linux_x86_64_20250819.zip’ saved [6321240/6321240]
+
+#unzip it
+(base) [duartej3@lri-r04 programs]$ unzip plink_linux_x86_64_20250819.zip 
+Archive:  plink_linux_x86_64_20250819.zip
+  inflating: plink                   
+  inflating: LICENSE                 
+  inflating: toy.ped                 
+  inflating: toy.map                 
+  inflating: prettify
+
+#check it works               
+(base) [duartej3@lri-r04 programs]$ ./plink --version 
+PLINK v1.9.0-b.7.11 64-bit (19 Aug 2025)
+```
+
+
+
+
 </details>
 
 
