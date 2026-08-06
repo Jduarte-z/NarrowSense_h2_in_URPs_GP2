@@ -1535,6 +1535,7 @@ Inside the /working_directory/pca_and_such_outFolder_pca_andSuch/ create the cov
 ```bash
 awk \
   -v idfile="covariate_file_no_related_pairs_IIDs.txt" \
+  -v iidlist="unrelated_IIDs.txt" \
   -v pcfile="covariate_file_no_related_pairs_PCs.tsv" '
 BEGIN {
     FS = OFS = "\t"
@@ -1542,6 +1543,9 @@ BEGIN {
     # Empty the auxiliary output files before writing
     printf "" > idfile
     close(idfile)
+
+    printf "" > iidlist
+    close(iidlist)
 
     printf "" > pcfile
     close(pcfile)
@@ -1595,8 +1599,11 @@ FNR == 1 {
 
     printf "\n"
 
-    # IID-only file, without a header
+    # Two-column FID IID file, without a header
     print $1, $1 > idfile
+
+    # One-column IID list, without a header
+    print $1 > iidlist
 
     # FID IID PC1-PC10 file, without a header
     printf "%s\t%s", $1, $1 > pcfile
