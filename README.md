@@ -66,6 +66,8 @@ However, we encourage you to follow the structure as much as you can. Because if
 Let's start with the folder structure and programs preparation. 
 
 First, for cov-LDSC and LDSC 
+<details>
+<summary><strong>Click to expand command lines</strong></summary>
 
 ```
 
@@ -147,8 +149,13 @@ Total time elapsed: 0.0s
 #to check the flags available, just another way of showing that the conda environment and python versions are working appropriately. 
 ```
 
+<details>
+	
 Now lets download the main programs that will be needed. 
 In particular, we are going to download plink1, plink2 and GCTA. We will need a couple of extra packages for specific parts of the analysis, but we will get those as we get to use them. 
+
+<details>
+<summary><strong>Click to expand command lines</strong></summary>
 
 ```
 # go to the programs folder
@@ -275,7 +282,7 @@ Archive:  plink_linux_x86_64_20250819.zip
 (base) [duartej3@lri-r04 programs]$ ./plink --version 
 PLINK v1.9.0-b.7.11 64-bit (19 Aug 2025)
 ```
-
+<details>
 
 
 ### Cov-LDSC
