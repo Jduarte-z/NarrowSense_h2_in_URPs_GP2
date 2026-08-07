@@ -51,9 +51,6 @@ These two methods could be considered amongst the most popular ones in the liter
 ## Hands-on Tutorial 
 
 ### Prepare your machine for running 
-<details>
-<summary><strong>Click to expand requirements</strong></summary>
-
 	
 Before running cov-LDSC and GCTA-GREML we need to get the programs and dependencies ready. 
 I am assuming here that you have already installed miniconda3 in your linux machine, if you haven't installed miniconda3 yet please take a look at this: https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install.
@@ -279,10 +276,6 @@ Archive:  plink_linux_x86_64_20250819.zip
 PLINK v1.9.0-b.7.11 64-bit (19 Aug 2025)
 ```
 
-
-
-
-</details>
 
 
 ### Cov-LDSC
