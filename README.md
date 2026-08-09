@@ -52,7 +52,7 @@ Since the mid-20th century, heritability of complex traits was estimated primari
 
 With the advent of genome-wide association studies, heritability could be estimated from genotype data in samples of "unrelated individuals". These methods estimate a distinct quantity:
 
-> **SNP heritability (`h²_SNP`, sometimes `h²_g`)** — the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
+**SNP heritability (`h²_SNP`, sometimes `h²_g`)** — the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
 
 `h²_SNP` is generally smaller than `h²` because:
 
