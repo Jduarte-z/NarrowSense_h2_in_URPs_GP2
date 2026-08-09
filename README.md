@@ -1,3 +1,5 @@
+#clean markdown 
+
 # Estimation of Narrow-Sense SNP Heritability in Underrepresented Populations within the Global Parkinson's Genetics Program
 
 *A hands-on tutorial: concepts, objectives, and methods.*
@@ -100,12 +102,111 @@ A comprehensive review of heritability estimation methods is beyond the scope of
 
 On that note, we can make a broad classification of the current methods for estimating `h2_SNP` based on the concept similarity that they exploit. And some notes on their challenges when applied to URPs. 
 
-	1. Methods that exploit genotypic similarity among unrelated individuals: require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates and scale up quickly as sample sizes increase. 
-		a. The most famous example for these type of methods is embodied by the Genome-Wide Complex Trait Analysis Genomic relatedness matrix restricted maximum likelihood or GCTA-GREML toolkit. Which uses a linear mixed model framework to regress phenotypic similarity between individuals on their genotypic similarity. 
-		b. And the alternative that uses a regression of phenotype correlation on genotype correlations, known as Haseman-Elston regressions for quantitative traits or the Phenotype Correlations Genotype Correlations (PGCG) method for binary traits. These methods require less assumptions that the GCTA-GREML (do not require assuming an entire probabilistic model), are more robust under case ascertainment bias and a bit more computationally efficient. 
-		c. Both a) and b) methods estimate heritability from a GRM, a table of how genetically similar each pair of participants is. On the logic that if a trait is heritable, people who share more genome should also resemble ach other more in that trait. This requires the matrix to capture *recent shared genealogy*, but the standard calculation compares everyone to a single cohort-average allele frequency, which in URPs that tend to be admixed describes no one accurately. For example, two unrelated participants who both carry high proportions of a given ancestry will deviate from the average in the same direction at thousands of variants, and shared ancestry could be mistaken as shared recent genealogy, breaking some of the assumptions made by the methods in question. Hence, for URPs, an ancestry-aware GRM is highly advisable to compute and benchmarked alongside classical methods (see below). 
-	
-	2. Methods that that exploit linkage disequilibrium among genetic variants (LD scores): require the presence of an LD reference panel appropriate to the population in question, tend to give more conservative (lower) heritability estimates. Classically exemplified in the Linkage Disequilibrium Score Regression method (LDSC)
-		a. For European populations this is the go-to method when sample sizes are big, since the core of the method is based on regressing the chi-square of GWAS summary statistics on the LD scores from the reference panel. So you will only need summary statistics and One-Thousand Genomes Project derived LD scores.
-		b. For URPs, appropriate reference panel are usually lacking, and the admixture that characterizes several of the URPs violates some of the mathematical assumptions these methods require. Hence, Individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). 
+1. Methods that exploit genotypic similarity among unrelated individuals: require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates and scale up quickly as sample sizes increase. 
+    a. The most famous example for these type of methods is embodied by the Genome-Wide Complex Trait Analysis Genomic relatedness matrix restricted maximum likelihood or GCTA-GREML toolkit. Which uses a linear mixed model framework to regress phenotypic similarity between individuals on their genotypic similarity. 
+    b. And the alternative that uses a regression of phenotype correlation on genotype correlations, known as Haseman-Elston regressions for quantitative traits or the Phenotype Correlations Genotype Correlations (PGCG) method for binary traits. These methods require less assumptions that the GCTA-GREML (do not require assuming an entire probabilistic model), are more robust under case ascertainment bias and a bit more computationally efficient. 
+    c. Both a) and b) methods estimate heritability from a GRM, a table of how genetically similar each pair of participants is. On the logic that if a trait is heritable, people who share more genome should also resemble ach other more in that trait. This requires the matrix to capture *recent shared genealogy*, but the standard calculation compares everyone to a single cohort-average allele frequency, which in URPs that tend to be admixed describes no one accurately. For example, two unrelated participants who both carry high proportions of a given ancestry will deviate from the average in the same direction at thousands of variants, and shared ancestry could be mistaken as shared recent genealogy, breaking some of the assumptions made by the methods in question. Hence, for URPs, an ancestry-aware GRM is highly advisable to compute and benchmarked alongside classical methods (see below). 
 
+2. Methods that that exploit linkage disequilibrium among genetic variants (LD scores): require the presence of an LD reference panel appropriate to the population in question, tend to give more conservative (lower) heritability estimates. Classically exemplified in the Linkage Disequilibrium Score Regression method (LDSC)
+    a. For European populations this is the go-to method when sample sizes are big, since the core of the method is based on regressing the chi-square of GWAS summary statistics on the LD scores from the reference panel. So you will only need summary statistics and One-Thousand Genomes Project derived LD scores.
+    b. For URPs, appropriate reference panel are usually lacking, and the admixture that characterizes several of the URPs violates some of the mathematical assumptions these methods require. Hence, Individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). 
+
+
+
+### 3.1 Covariate-adjusted LD score regression (cov-LDSC)
+
+Standard LDSC estimates `h²_SNP` by regressing GWAS chi-square statistics on LD scores, typically computed from an external reference panel such as 1000 Genomes. Two of its assumptions fail in admixed cohorts: no matched reference panel exists, and long-range admixture LD violates the assumption that LD is negligible beyond a short genomic window.
+
+cov-LDSC [(Luo et al. 2021)](https://pubmed.ncbi.nlm.nih.gov/33987664/) addresses both. Principal components are projected out of the genotypes **before** LD is computed, so that the LD scores are adjusted for the same covariates included in the association model. LD scores are then computed in-sample rather than from an external panel.
+
+Practical consequences for implementation:
+
+- **Window size.** In European samples, mean LD scores plateau beyond ~1 cM. In admixed American samples they continue to rise without covariate adjustment; after adjustment they plateau at ~20 cM. A 20-cM window is the recommended default.
+- **Number of PCs.** Ten PCs is the published recommendation, though the appropriate number depends on the structure of the specific cohort and should be checked empirically.
+- **Subsampling.** In-sample LD scores can be computed on a random subset of individuals; unbiased estimates were obtained with as few as 1,000 samples. However in order to use the same genetic data for all the main and sensitivity analysis we are planning on using the full cohort as its own reference for the LD scores. Nonetheless, if it becomes computationally unscalable, we can revise this.
+- **MAF filter.** Restrict to MAF > 0.01 for LD score computation.
+- **Estimand.** Because LD is computed from array genotypes rather than refernce panel sequence data, cov-LDSC targets the same estimand as GCTA (`h²_g`) rather than LDSC's usual `h²_common`. This makes it directly comparable to the GRM-based estimate below.
+
+### 3.2 GRM-based estimation: GREML and PCGC
+
+GCTA-GREML is the complementary, individual-level estimator to benchmark against cov-LDSC, and even the authors of cov-LDSC benchmarked their real-world data and simulations with this two methods. 
+However, 
+The original proposal specified GCTA-GREML as the complementary, individual-level estimator. GREML is well suited to the modest sample sizes typical of underrepresented cohorts and uses individual-level genotypes directly.
+
+However, for ascertained case-control data, REML-based estimators give inconsistent liability-scale estimates, and the bias is aggravated — not mitigated — by the inclusion of fixed-effect covariates such as ancestry PCs (Golan et al. 2014; Weissbrod et al. 2018). 
+
+We therefore use **PCGC regression** (Phenotype-Correlation–Genotype-Correlation), implemented in LDAK, as an additional tool to benchmark alongside cov-LDSC and GREML. PCGC estimates liability-scale heritability directly and remains unbiased under ascertainment and in the presence of covariates.
+
+One honest caveat: PCGC's variance behavior depends on the relationship between sample and population prevalence. It is essentially unbiased when sample prevalence exceeds population prevalence, but MSE increases substantially when population prevalence is small and sample prevalence does not exceed it (Ojavee et al. 2022). A case-enriched PD cohort with `K = 0.005` sits in the favorable side, which is the justification for this choice.
+
+### 3.3 Sensitivity analyses
+
+The estimate is a point on a surface defined by several modelling choices, and the honest deliverable is the surface, not the point. Axes to vary:
+
+| Axis | Range |
+|---|---|
+| Population prevalence `K` | 0.005 (primary), 0.01, 0.02 |
+| Genetic architecture model | GCTA-uniform weighting (primary), LDAK-parametric weighting |
+| cov-LDSC window size | ≥ 20 cM; confirm plateau criterion (<1% increase per cM) |
+| cov-LDSC PC count | Vary; confirm LD score stability |
+| GRM construction | Relatedness threshold, MAF filter, LD-pruning scope |
+
+**Note on architecture:** GCTA-uniform weighting (α = −1) is used as the primary model for comparability with the IPDGC literature and to match the cov-LDSC estimand. The LDAK-weighted model is retained as a sensitivity dimension rather than dismissed; the MAF-axis distinction between the two largely washes out when analysis is restricted to common variants.
+
+---
+
+## 4. Repository structure
+
+<!-- TODO: fill in once the scripts are organized -->
+
+```
+.
+├── 00_qc/
+├── 01_ancestry_relatedness/
+├── 02_gwas/
+├── 03_covldsc/
+├── 04_pcgc/
+└── docs/
+```
+
+## 5. Prerequisites
+
+<!-- TODO: pin versions -->
+
+| Tool | Version | Purpose |
+|---|---|---|
+| PLINK | 1.9 / 2.0 | Genotype QC and manipulation |
+| R | ≥ 4.x | GENESIS, SNPRelate, GWASTools |
+| GENESIS | | PC-AiR, PC-Relate |
+| cov-LDSC | immunogenomics fork | LD score computation and regression |
+| LDAK | | PCGC regression |
+
+Compute environment: SLURM-based HPC cluster. Several steps (notably `pcrelate` at N > 5,000) are not feasible in an interactive session.
+
+## 6. Data access
+
+<!-- TODO: GP2 / LARGE-PD data access statement and tier description -->
+
+## 7. Citation
+
+<!-- TODO -->
+
+## 8. Contact
+
+<!-- TODO -->
+
+---
+
+## Key references
+
+- Bulik-Sullivan et al. (2015) — LD score regression
+- Conomos et al. (2016) — PC-Relate, model-free relatedness estimation
+- Golan et al. (2014) — PCGC regression
+- Huang et al. (2025) — Interpreting SNP heritability in admixed populations
+- Lee et al. (2011) — Observed-to-liability scale transformation
+- Luo et al. (2021) — cov-LDSC
+- Ojavee et al. (2022) — Liability-scale heritability for low-prevalence disease
+- Schraiber & Edge (2024) — Within- vs. between-group heritability
+- Speed et al. (2017) — Re-evaluation of SNP heritability and architecture models
+- Weissbrod et al. (2018) — SNP heritability and genetic correlation in case-control studies
+- Yang et al. (2010, 2011) — GCTA and genome partitioning
