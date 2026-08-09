@@ -1,52 +1,111 @@
-# Estimation of narrow sense heritability in Underrepresented Populations within the Global Parkinson's Genetics Program 
+# Estimation of Narrow-Sense SNP Heritability in Underrepresented Populations within the Global Parkinson's Genetics Program
 
-## Brief introduction of important concepts, objectives and methods
+*A hands-on tutorial: concepts, objectives, and methods.*
 
-## Intro
-A complex trait, under the lens of quantitative population genetics, could be explained in the following way:
-Y ~ A + D + I + E
+---
 
-Where Y is the phenotype of interest and is a function of: "A", the additive genetic effects that contribute to the development of the trait; "D", the dominant genetic effects; "I", the epistatic interactions; and "E", the enviromental component. 
+## 1. Background
 
-Since these parameters tend to vary across individuals and populations. At any given cohort, and across individuals, the variance (V) of the parameters could be writen like this:
+### 1.1 The quantitative genetic model
 
-VY ~ VA + VD + VI + VE
+Under the classical quantitative genetics framework, an individual's phenotype for a complex trait can be decomposed as:
 
-Where VY is the total phenotypic variance, VA is the additive genetic variance, VD is the dominant genetic variance, VI is variance in epistatic interactions, and VE the environmnental variance. 
+```
+P = G + E = (A + D + I) + E
+```
 
-Hence, the heritability of a phenotype or trait could be defined as the total phenotypic variance that could be explain by the variance in genetic effects (since variance is a squared metric, it is written like H2 and h2, see below discussion to know the difference). And is specific of the population and environment at which the individulas of interest belong.
+where `P` is the observed phenotype, `G` genetics, and `E` environment. Within "`G1`"`A` is the additive genetic effect (the sum of average effects of alleles), `D` is the dominance effect (within-locus allelic interaction), `I` is the epistatic effect (between-locus interaction), and `E` is the environmental deviation.
 
-Heritability could be broken down into broad-sense (H2) and narrow-sense heritability (h2). Braod-sence heritability is essentially VA + VD + VI. And narrow-sense heritability referss exclusivelly to the additive genetic effects (VA). 
-Classically, since the mid-20th century, heritability of complex traits has been studied through twin studies, in which researchers gathered multiple monzygotic (MZ) and dizygotic (DZ) twins, and modeled how much extra phenotypic similarity in MZ pairs must be due to genetic variance (given their higher genetic sharing) compared to DZ twins, and partitioning the total phenotypic variance into genetic and environmental components. Furthermore, with the advent of genome-wide association studies, the possibility of estimating the heritability of complex traits through genotyping or sequencing data became available. However, GWAS heritability estimates have been classically focused on additive genetic effects of common single nucleotide polymorphisms (SNPs) (an intrinsic limitation of the most commonly used genotyping tools). Hence, for many traits and phenotypes, the heritability estimated through twin studies (closer to H2) versus the one estimated through genome-wide association studies (closer to h2) are discordant. Being twin data the one giving much higher estimates. A problem known as the "missing heritability of complex diseases" (the "problem" is basically that GWAS-based heritability estimates tend to be lower than the ones from twin data).  
+Because these components vary across individuals, the corresponding decomposition of the total phenotypic variance in a given population is:
 
-The discussion about the reasons behind the "missing heritability" problem are outside of the scope of this tutorial, but useful information could be found elsewhere (https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/). 
+```
+VP = VA + VD + VI + VE + 2·Cov(G,E) + VGxE
+```
 
-## Objective of this tutorial
+The last two terms — the genotype–environment covariance and the genotype-by-environment interaction variance — are usually left out of the heritability analysis that we are about to.
 
-This repository is intended to showcase the steps needed to undertake the estimation of narrow sense heritability (h2) in underrepresented populations using raw genetic, phenotypic and genome-wide association data. 
+Hheritability estimates should not be interpreted as environment-independent estimates, but rather as population and its particular
+distribution of environment specific.  
 
-## Objective of the project 
-
-Our main aims are:
-1) layout the analytical framework to estimate h2 explained by single nucleotide polymorphisms in underrepresented populations. 
-2) estimate the h2 corresponding to genome-wide significant loci discovered so far.
-3) provide a landscape of the potential heterogeneity and challenges regarding this estimations in underrepresented populations in light of current European-dominant field. 
+In this GitHub, we do not provide a comprehensive coverage of these topics. For useful references you coud refer to books like: Falconer, D.S. & Mackay, T.F.C. (1996). Introduction to Quantitative Genetics, and Lynch, M. & Walsh, B. (1998). Genetics and Analysis of Quantitative Traits.
 
 
-## Methods overview 
+### 1.2 Broad and narrow-sense heritability
 
-Nowadays, multiple tools stand out to infer h2 in the field of quantitative population genomics. The BIG majority of these have being developed using data derived from European populations. However, recent adaptations for underrepresented and admixed populations have being designed. In this repository, an explicit step by step, hands-on adaptation is described. Specifically in the context of underrepresented cohorts within the field of Parkinson's Disease (PD). 
+Heritability is a **ratio**: it is the proportion of phenotypic variance attributable to genetic variance.
 
-A comprehensive review of the methods available for h2 estimation is out of the scope of this repository. Relevant references to this topics have been gathered in this document: https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing (not mandatory to read but useful to satisfy curiosity, to a certain extent). However, this list is not intended to cover all the literature available and should NOT be considered comprehensive. 
+- **Broad-sense heritability:** `H² = (VA + VD + VI) / VP`
+- **Narrow-sense heritability:** `h² = VA / VP`
 
-The initial framework that was approved by GP2's Project Proposal, Approval, and Execution Working Group consisted on benchmarking two methods:
+Two properties are worth to mention:
 
-1) Covariate Linkage Disequilibrium Score regression (cov-LDSC), that corresponds to the adaptation of the classic LDSC method but for admixed/underrepresented populations. Classic LDSC is designed to work only with GWAS summary statistics and a reference panel LD scores. However, since a reference panel is usually not available for URPs and some of the mathematical assumptions are violated in the presence of admixture, cov-LDSC solves these issues by computing an in-sample reference panel and adjusting the LD scores by genetic principal component analysis. 
+1. Heritability is a property of a **population in an environment**, not of a trait and certainly not of an individual. The same trait can have different heritabilities in multiple cohorts that have multiple environmental and/or genetic components. 
 
-2) Genome-wide complex trait analysis (GCTA) Genomic relatedness matrix (GRM) restricted maximum likelihood (GREML), that would be used as a complementary estimate to the ones provided by cov-LDSC. Since at lower sample sizes (an usual scenario for URPs), would be computationally feasible and potentially provide a useful alternative estimate to analyze, because it includes raw individual data in the estimation of h2 itself, contrary to cov-LDSC [note: cov-LDSC also uses raw individual level data, but in the construction of the in-sample reference panel, the calculations themselves only use the LD scores and summary statistics, aka, de-identified data). 
-
-These two methods could be considered amongst the most popular ones in the literature to estimate narrow sense heritability. However, there are plenty of newer versions and different approaches to answer this question (see the document with relevant references above). So as the project advances, and based on your insight as well, we can discuss and to include additional complementary tools that have different assumptions, advantages, and disadvantages as part of sensitivity analysis.
-
+2. Heritability *within* groups carries no information about the causes of mean differences *between* groups, see [J.G. Schraiber & M.D. Edge (2024)](https://www.pnas.org/doi/10.1073/pnas.2319496121)
 
 
+### 1.3 Twin studies, GWAS, and the "missing heritability" problem
+
+Since the mid-20th century, heritability of complex traits was estimated primarily from twin and family designs. The classical ACE model partitions phenotypic variance into additive genetic (A), shared environmental (C), and unique environmental (E) components by exploiting the difference in genetic sharing between monozygotic (~1.0) and dizygotic (~0.5) twin pairs. Falconer's estimator, `h² = 2(r_MZ − r_DZ)`, is nominally a narrow-sense estimator, though in practice dominance, epistasis, shared environment, and assortative mating all load onto the A term.
+
+With the advent of genome-wide association studies, heritability could be estimated from genotype data in samples of "unrelated individuals". These methods estimate a distinct quantity:
+
+> **SNP heritability (`h²_SNP`, sometimes `h²_g`)** — the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
+
+`h²_SNP` is generally smaller than `h²` because:
+
+- Genotyping arrays interrogate common variation and tag rare causal variants poorly.
+- Even where causal variants are present, the additive random-effect model assumes independent, exchangeable SNP effects, which is an approximation.
+- Non-additive variance is excluded by construction (and dominant, epistatic effects, etc. are left out)
+
+The gap between twin-based and GWAS-based estimates is the **"missing heritability" problem**. It reflects a combination of genuinely untagged variance, non-additive contributions, and the nature of family-based estimates (e.g. shared environment and assortative mating). A useful entry point to this literature is Manolio et al. (2009), [*Finding the missing heritability of complex diseases*](https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/), since we don't cover this aspect extensively in this repository.  
+
+**Hence, with this tutorial, you will be able to estimate `h²_SNP`, not `h²`**
+
+### 1.4 Binary traits and the liability scale
+
+Parkinson's disease is a dichotomous outcome, which introduces two complications absent from the continuous-trait framework above.
+
+**Scale.** Under the liability threshold model, each individual has an unobserved, normally distributed liability; individuals whose liability exceeds a threshold determined by the population prevalence `K` are affected. Heritability estimated on the observed 0/1 scale depends on the case-control ratio in the sample and is not comparable across studies. Estimates must therefore be reported on the **liability scale**, which is a property of the population rather than of the study design.
+
+**Ascertainment.** Case-control cohorts are, by design, enriched for cases relative to the population (`P >> K`). This oversampling biases the naive observed-to-liability transformation and, more seriously, biases REML-based estimators when covariates such as ancestry principal components are included in the model.
+
+For PD we use `K = 0.005` as the primary population prevalence, consistent with the values used in previous published literature, and report sensitivity across `K ∈ {0.005, 0.01, 0.02}`. Prevalence is not measured with precision in underrepresented populations, and this uncertainty propagates directly into the liability-scale estimate. 
+
+### 1.5 Why estimate h²_SNP, and why in underrepresented populations?
+
+The estimation of `h2_SNP` is relevant by its own means regardless of the population. Consider that it is computed using the same resources allocated for conducting genome-wide association studies, and since it represents the phenotypic variance explained by the same genetic variation screened in a GWAS framework, its value helps us to get closer to a comprehensive mapping of the genetic architecture of a complex trait in a given population. For example, giving a potential upper limit estimate on the discovery power that GWAS could have, or the virtual upper limit of the performance of polygenic risk scores derived from the GWASs in question (since the accuracy of a PRS would approach heritability estimates as sample size and increase genetic variation is captured without bound). 
+
+And beyond this point, exploring `h2_SNP` estimation in underrepresent populations becomes meaningful in several ways. First, it will increase the methodological capacity so it does not depend on European reference data and pipelines. Nearly every heritability estimator in common use was developed and validated on European-ancestry samples, and their behavior in underrepresented, admixed cohorts is comparatively uncharacterized, especially for Parkinson's Disease. Additionally, it will help us to showcase the heterogeneity, challenges, limitations and future directions when computing and interpreting these type of estimates from diverse genomic data. 
+
+---
+
+## 2. Objectives
+
+### Repository objective
+
+Provide a reproducible, step-by-step workflow for estimating SNP heritability in underrepresented and admixed populations from raw genotype, phenotype, and GWAS summary data.
+
+### Project aims
+
+1. **Lay out the analytical framework** for estimating `h²_SNP` in underrepresented populations, with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation and different heritability models. 
+2. **Collaborate internationally** to build the capacity needed to estimate `h2_SNP` as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs. 
+2. **Characterize heterogeneity, methodological uncertainty and challenges** when computing this estimates, in light of a field whose methods were developed and validated mainly on European-ancestry data.
+
+---
+
+## 3. Methods overview
+
+A comprehensive review of heritability estimation methods is beyond the scope of this repository. A curated reference list is available [here](https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing). Disclaimer, the list is not intended to be comprehensive and its reading is not mandatory, but it definitely will help to satisfy your curiosity to a certain extent. 
+
+On that note, we can make a broad classification of the current methods for estimating `h2_SNP` based on the concept similarity that they exploit. And some notes on their challenges when applied to URPs. 
+
+	1. Methods that exploit genotypic similarity among unrelated individuals: require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates and scale up quickly as sample sizes increase. 
+		a. The most famous example for these type of methods is embodied by the Genome-Wide Complex Trait Analysis Genomic relatedness matrix restricted maximum likelihood or GCTA-GREML toolkit. Which uses a linear mixed model framework to regress phenotypic similarity between individuals on their genotypic similarity. 
+		b. And the alternative that uses a regression of phenotype correlation on genotype correlations, known as Haseman-Elston regressions for quantitative traits or the Phenotype Correlations Genotype Correlations (PGCG) method for binary traits. These methods require less assumptions that the GCTA-GREML (do not require assuming an entire probabilistic model), are more robust under case ascertainment bias and a bit more computationally efficient. 
+		c. Both a) and b) methods estimate heritability from a GRM, a table of how genetically similar each pair of participants is. On the logic that if a trait is heritable, people who share more genome should also resemble ach other more in that trait. This requires the matrix to capture *recent shared genealogy*, but the standard calculation compares everyone to a single cohort-average allele frequency, which in URPs that tend to be admixed describes no one accurately. For example, two unrelated participants who both carry high proportions of a given ancestry will deviate from the average in the same direction at thousands of variants, and shared ancestry could be mistaken as shared recent genealogy, breaking some of the assumptions made by the methods in question. Hence, for URPs, an ancestry-aware GRM is highly advisable to compute and benchmarked alongside classical methods (see below). 
+	
+	2. Methods that that exploit linkage disequilibrium among genetic variants (LD scores): require the presence of an LD reference panel appropriate to the population in question, tend to give more conservative (lower) heritability estimates. Classically exemplified in the Linkage Disequilibrium Score Regression method (LDSC)
+		a. For European populations this is the go-to method when sample sizes are big, since the core of the method is based on regressing the chi-square of GWAS summary statistics on the LD scores from the reference panel. So you will only need summary statistics and One-Thousand Genomes Project derived LD scores.
+		b. For URPs, appropriate reference panel are usually lacking, and the admixture that characterizes several of the URPs violates some of the mathematical assumptions these methods require. Hence, Individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). 
 
