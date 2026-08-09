@@ -132,13 +132,13 @@ Here is a more detailed description on the analysis to be performed:
 
 | # | Arm | GRM | Model | Role in the design |
 |---|---|---|---|---|
-| 1 | **cov-LDSC**, in-sample LD scores | — | α = −1 | Pre-registered primary. Summary-statistic based, validated in admixed cohorts, and completely independent of GRM construction. |
-| 2 | **GREML** + standard GCTA GRM | GCTA | α = −1 | The field's reference implementation. This is the number most directly comparable to published PD heritability estimates. |
-| 3 | **GREML** + PC-Relate GRM | PC-Relate | α = −1 | Isolates GRM construction. Same estimator, same SNPs, same covariates as arm 2 — only ancestry residualisation differs. |
-| 4 | **PCGC** + standard GCTA GRM | GCTA | α = −1 | Isolates ascertainment handling. Same GRM as arm 2 — only the liability-scale estimator differs. |
-| 5 | **PCGC** + PC-Relate GRM | PC-Relate | α = −1 | Both corrections applied together. |
-| 6 | **PCGC permutation** | PC-Relate kinships, shuffled | α = −1 | Null control. |
-| 7 | **PCGC permutation** | GCTA kinships, shuffled | α = −1 | Null control. |
+| 1 | **cov-LDSC**, in-sample LD scores | — | α =−1 | Pre-registered primary. Summary-statistic based, validated in admixed cohorts, and completely independent of GRM construction. |
+| 2 | **GREML** + standard GCTA GRM | GCTA | α =−1 | The field's reference implementation. This is the number most directly comparable to published PD heritability estimates. |
+| 3 | **GREML** + PC-Relate GRM | PC-Relate | α =−1 | Isolates GRM construction. Same estimator, same SNPs, same covariates as arm 2 — only ancestry residualisation differs. |
+| 4 | **PCGC** + standard GCTA GRM | GCTA | α =−1 | Isolates ascertainment handling. Same GRM as arm 2 — only the liability-scale estimator differs. |
+| 5 | **PCGC** + PC-Relate GRM | PC-Relate | α =−1 | Both corrections applied together. |
+| 6 | **PCGC permutation** | PC-Relate kinships, shuffled | α =−1 | Null control. |
+| 7 | **PCGC permutation** | GCTA kinships, shuffled | α =−1 | Null control. |
 
 ### 3.1 Covariate-adjusted LD score regression (cov-LDSC)
 
