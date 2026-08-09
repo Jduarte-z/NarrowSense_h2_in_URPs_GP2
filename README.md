@@ -24,7 +24,7 @@ Because these components vary across individuals, the corresponding decompositio
 VP = VA + VD + VI + VE + 2·Cov(G,E) + VGxE
 ```
 
-The last two terms — the genotype–environment covariance and the genotype-by-environment interaction variance — are usually left out of the heritability analysis that we are about to.
+The last two terms (the genotype–environment covariance and the genotype-by-environment interaction variance) are usually left out of the heritability analysis that we are about to.
 
 Hheritability estimates should not be interpreted as environment-independent estimates, but rather as population and its particular
 distribution of environment specific.  
@@ -52,7 +52,7 @@ Since the mid-20th century, heritability of complex traits was estimated primari
 
 With the advent of genome-wide association studies, heritability could be estimated from genotype data in samples of "unrelated individuals". These methods estimate a distinct quantity:
 
-**SNP heritability (`h²_SNP`, sometimes `h²_g`)** — the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
+**SNP heritability (`h²_SNP`, sometimes `h²_g`)**: the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
 
 `h²_SNP` is generally smaller than `h²` because:
 
