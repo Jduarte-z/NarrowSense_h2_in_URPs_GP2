@@ -112,6 +112,16 @@ On that note, we can make a broad classification of the current methods for esti
    - **(b)** For URPs, appropriate reference panel are usually lacking, and the admixture that characterizes several of the URPs violates some of the mathematical assumptions these methods require. Hence, Individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). 
 
 
+Furthermore, there are a couple of different axes to classify `h2_SNP` estimation methods, in particular:
+
+1. **Based on the Heritability model**: every estimator carries a prior assumption about how heritability is distributed across the genome. Specifically, how variant's expected contribution depends on its allele frequency and how much LD it sits in. The general form for describing this is `E[h²_j] ∝ w_j · [f_j(1−f_j)]^(1+α)`, where `f_j` is allele frequency and `w_j` is an LD-based weight.
+	- **(a)** All of the above methods tend to do `w_j = 1` and, conventionally, `α = −1` (the so called GCTA model) This makes `E[h²_j]` constant: every SNP is expected to contribute equally, regardless of frequency or LD. LDSC assumes essentially the same thing.
+	- **(b)** The human default model described by the creators of [LDAK](https://dougspeed.com/heritability-model/), is often described as an alternative to the classic GCTA model, and it is included as part of the benchmarks that we are about to describe. 
+2. **Based on genome-wide partition**: this alludes whether a single variance component for all genetic variants is used, or it is split into bins based on different parameters. 
+	- **(a)** All of the above methods, in the way we intend them to be used, use a single variance component, aka, uses genome-wide data all at once. However an alternative is to decompose genome-wide data in bins based on LD scores or minor allele frequency, since it has been shown that heritability tend to vary based on the thresholds used for single variance component calculations. However, the cost of including more parameters tend to be larger standard errors and the need for bigger sample sizes that underrepresented cohorts frequently don't have. 
+
+
+
 
 ### 3.1 Covariate-adjusted LD score regression (cov-LDSC)
 
