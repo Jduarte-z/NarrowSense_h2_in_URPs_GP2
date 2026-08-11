@@ -14,7 +14,7 @@ Under the classical quantitative genetics framework, an individual's phenotype f
 P = G + E = (A + D + I) + E
 ```
 
-where `P` is the observed phenotype, `G` genetics, and `E` environment. Within "`G1`"`A` is the additive genetic effect (the sum of average effects of alleles), `D` is the dominance effect (within-locus allelic interaction), `I` is the epistatic effect (between-locus interaction), and `E` is the environmental deviation.
+where `P` is the observed phenotype, `G` genetics, and `E` environment. Within "`G`"`A` is the additive genetic effect (the sum of average effects of alleles), `D` is the dominance effect (within-locus allelic interaction), `I` is the epistatic effect (between-locus interaction), and `E` is the environmental deviation.
 
 Because these components vary across individuals, the corresponding decomposition of the total phenotypic variance in a given population is:
 
