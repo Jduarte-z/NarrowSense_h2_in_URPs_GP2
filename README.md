@@ -1,4 +1,4 @@
-# Estimation of Narrow-Sense SNP Heritability in Underrepresented Populations within the Global Parkinson's Genetics Program
+# Tutorial for the estimation of Narrow-Sense SNP Heritability in Underrepresented Populations within the Global Parkinson's Genetics Program
 
 *A hands-on tutorial: concepts, objectives, and methods.*
 
