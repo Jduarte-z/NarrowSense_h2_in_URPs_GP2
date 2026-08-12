@@ -24,10 +24,10 @@ VP = VA + VD + VI + VE + 2·Cov(G,E) + VGxE
 
 The last two terms (the genotype–environment covariance and the genotype-by-environment interaction variance) are usually left out of the heritability analysis that we are about to.
 
-Hheritability estimates should not be interpreted as environment-independent estimates, but rather as population and its particular
+Heritability estimates should not be interpreted as environment-independent estimates, but rather as population and its particular
 distribution of environment specific.  
 
-In this GitHub, we do not provide a comprehensive coverage of these topics. For useful references you coud refer to books like: Falconer, D.S. & Mackay, T.F.C. (1996). Introduction to Quantitative Genetics, and Lynch, M. & Walsh, B. (1998). Genetics and Analysis of Quantitative Traits.
+In this GitHub, we do not provide a comprehensive coverage of these topics. For useful references you could refer to books like: Falconer, D.S. & Mackay, T.F.C. (1996). Introduction to Quantitative Genetics, and Lynch, M. & Walsh, B. (1998). Genetics and Analysis of Quantitative Traits.
 
 
 ### 1.2 Broad and narrow-sense heritability
@@ -52,7 +52,7 @@ With the advent of genome-wide association studies, heritability could be estima
 
 **SNP heritability (`h²_SNP`, sometimes `h²_g`)**: the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
 
-`h²_SNP` is generally smaller than `h²` because:
+`h²_SNP` is expected to be smaller than `h²` because:
 
 - Genotyping arrays interrogate common variation and tag rare causal variants poorly.
 - Even where causal variants are present, the additive random-effect model assumes independent, exchangeable SNP effects, which is an approximation.
@@ -76,7 +76,7 @@ For PD we use `K = 0.005` as the primary population prevalence, consistent with 
 
 The estimation of `h2_SNP` is relevant by its own means regardless of the population. Consider that it is computed using the same resources allocated for conducting genome-wide association studies, and since it represents the phenotypic variance explained by the same genetic variation screened in a GWAS framework, its value helps us to get closer to a comprehensive mapping of the genetic architecture of a complex trait in a given population. For example, giving a potential upper limit estimate on the discovery power that GWAS could have, or the virtual upper limit of the performance of polygenic risk scores derived from the GWASs in question (since the accuracy of a PRS would approach heritability estimates as sample size and increase genetic variation is captured without bound). 
 
-And beyond this point, exploring `h2_SNP` estimation in underrepresent populations becomes meaningful in several ways. First, it will increase the methodological capacity so it does not depend on European reference data and pipelines. Nearly every heritability estimator in common use was developed and validated on European-ancestry samples, and their behavior in underrepresented, admixed cohorts is comparatively uncharacterized, especially for Parkinson's Disease. Additionally, it will help us to showcase the heterogeneity, challenges, limitations and future directions when computing and interpreting these type of estimates from diverse genomic data. 
+And beyond this point, exploring `h2_SNP` estimation in underrepresented populations becomes meaningful in several ways. First, it will increase the methodological capacity so it does not depend on European reference data and pipelines. Nearly every heritability estimator in common use was developed and validated on European-ancestry samples, and their behavior in underrepresented, admixed cohorts is comparatively uncharacterized, especially for Parkinson's Disease. Additionally, it will help us to showcase the heterogeneity, challenges, limitations and future directions when computing and interpreting these type of estimates from diverse genomic data. 
 
 ---
 
@@ -88,7 +88,7 @@ Provide a reproducible, step-by-step workflow for estimating SNP heritability in
 
 ### Project aims
 
-1. **Lay out the analytical framework** for estimating `h²_SNP` in underrepresented populations, with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation and different heritability models. 
+1. **Lay out the analytical framework** for estimating `h²_SNP` in underrepresented populations (URPs), with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation and different heritability models. 
 2. **Collaborate internationally** to build the capacity needed to estimate `h2_SNP` as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs. 
 3. **Characterize heterogeneity, methodological uncertainty and challenges** when computing this estimates, in light of a field whose methods were developed and validated mainly on European-ancestry data.
 
@@ -247,7 +247,7 @@ Here we have confirmed that we have the shortcut active for further analysis.
 
 Only genotyped data is important for the computation of principal components. 
 
-For this step we are assuming hat your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations with your whole cohort together is described elsewhere (https://github.com/MataLabCCF/GWASQC). Since heritability estimations are more stable at bigger sample sizes, having the genetic data of your cohort altogether will be ideal. If your genotyped data was QCed with other frameworks that split individuals by ancestry (like [genotools] (https://github.com/dvitale199/GenoTools) and imputed by ancestry, we can discuss and brainstorm how to proceed. 
+For this step we are assuming that your genotype array data has been already called and QCed. The basic parameters expected and more relevant information about how to perform QC in admixed populations with your whole cohort together is described elsewhere (https://github.com/MataLabCCF/GWASQC). Since heritability estimations are more stable at bigger sample sizes, having the genetic data of your cohort altogether will be ideal. If your genotyped data was QCed with other frameworks that split individuals by ancestry (like [genotools] (https://github.com/dvitale199/GenoTools) and imputed by ancestry, we can discuss and brainstorm how to proceed. 
 
 Your genotype data could be in plink or vcf format, here I'm giving an example on how extract the "only typed" variants form the imputed data (in this case from topmed), but if you already have the genotyped data in a different set of files it is also fine, just create the symlink in the "genotype" folder to the genetic data like we did with the imputed. 
 
@@ -2098,7 +2098,7 @@ genetic_data  gwas  pca_and_such  programs  reference_panel
 
 </details>
 
-**A note on the covariates.** The model below uses `SEX`, `AGE` and `PC1..PC10`, all read from the full covariate table written in Step 4.c. In my own run I also carry a `PHASE` covariate, because LARGE-PD merges two recruitment phases that were genotyped separately, and batch effects of that kind must be adjusted for. Most cohorts will not have that column, so in the scripts below it is exposed as an `extra_covars` variable that is **empty by default**. If your cohort uses additional covariates emember that whatever you add here must also be present when the same covariate file is used in the GRM-based arms later on, otherwise the arms stop being comparable.
+**A note on the covariates.** The model below uses `SEX`, `AGE` and `PC1..PC10`, all read from the full covariate table written in Step 4.c. In my own run I also carry a `PHASE` covariate, because LARGE-PD merges two recruitment phases that were genotyped separately, and batch effects of that kind must be adjusted for. Most cohorts will not have that column, so in the scripts below it is exposed as an `extra_covars` variable that is **empty by default**. If your cohort uses additional covariates remember that whatever you add here must also be present when the same covariate file is used in the GRM-based arms later on, otherwise the arms stop being comparable.
 
 As a python script to submit 22 different jobs
 
