@@ -64,7 +64,7 @@ The gap between twin-based and GWAS-based estimates is the **"missing heritabili
 
 ### 1.4 Binary traits and the liability scale
 
-Parkinson's disease is a dichotomous outcome, which introduces two complications absent from the continuous-trait framework above.
+All of the previous discussions were in principle developed for quantitative traits, but Parkinson's disease is a dichotomous outcome, which introduces two complications.
 
 **Scale.** Under the liability threshold model, each individual has an unobserved, normally distributed liability; individuals whose liability exceeds a threshold determined by the population prevalence `K` are affected. Heritability estimated on the observed 0/1 scale depends on the case-control ratio in the sample and is not comparable across studies. Estimates must therefore be reported on the **liability scale**, which is a property of the population rather than of the study design.
 
