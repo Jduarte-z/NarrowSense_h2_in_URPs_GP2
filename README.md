@@ -1721,6 +1721,7 @@ Before running it, notice that every input this step needs was already produced 
 | imputed VCFs | Step 1 symlink | `../genetic_data/imputed/chr${i}.dose.vcf.gz` |
 | unrelated sample list (`FID IID`, no header) | Step 4.c | `../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs_IIDs.txt` |
 | PC covariates (`FID IID PC1..PC10`, no header) | Step 4.c | `../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs_PCs.tsv` |
+| Population proportion of PD in your cohort | Step 4.c | `../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.log` |
 | high-LD regions | Step 4.a (only written when `--removeHighLDregions yes`) | `../pca_and_such/outFolder_pca_andSuch/highLD_regions_grindeLab_hg38.tsv` |
 | genotyped variant IDs | Step 4.a | `../pca_and_such/outFolder_pca_andSuch/input_setVarIDs.snplist` |
 | HapMap3 positions | Step 5.a download | `./hpm3snplist.bed` |
