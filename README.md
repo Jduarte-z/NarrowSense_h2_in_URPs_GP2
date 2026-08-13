@@ -2488,6 +2488,8 @@ Total sample size       : 6412
 Cases    (DISEASE = 2)  : 3788
 Controls (DISEASE = 1)  : 2624
 Disease proportion      : 0.590768 (59.08%)
+
+#this numbers are just examples...
 ```
 
 </details>
