@@ -4479,11 +4479,6 @@ Finally, comparing arms 4 and 5 against arms 2 and 3 is where this gets interest
 
 Please share both null summary tables, both long-format estimate files, and the master logs. Step 13 collects them for you along with everything else, so there is no need to go hunting for them by hand.
 
-
----
-
-# Wrapping up
-
 ## Step 13. collect the shareables into one folder
 
 Throughout the tutorial we have asked you to send us particular files. Rather than making you collect all of that by hand across nine folders and 22 chromosome subfolders, this last script walks the project tree and gathers everything into a single folder.
@@ -5120,6 +5115,9 @@ Three files inside the bundle are worth opening before you send it:
 Everything in the folder is plain text or png, so `less` and any image viewer are all you need to go through it. Once it looks right to you, zip it and send it over. If `00_MISSING.txt` flagged something you could not resolve, just tell us what and why.
 
 
+
+---
+# Wrapping up
 ---
 
 # Notes after you finish the tutorial 
@@ -5189,15 +5187,17 @@ Two small things you may see that are not in the tree above. Unzipping the GCTA 
 
 # Plotting
 
-If you are interested in generating a visual representation of the h2 estimates of your cohort, you can edit the following script:
+If you are interested in generating a visual representation of the h2 estimates of your cohort across the different methods and prevalences, you can edit the following script:
 
 The script has empty values where each estimator should go, and you can hard code the specific values and edit some legends inside the script (I apologize for the hard coding). Nonetheless, I can provide a script that hunts for the specific values in the text files and does it for you. I will be working on that for the immediate future. But in the meantime, this is the first draft. 
 
 
 <details>
-<summary>script: <code>plotting_h2_estimates.sh</code> — plots the different estimates across the different prevalence settings 
-</summary>
-```R
+<summary><strong>View script: <code>plotting_h2_estimates.r</code></strong></summary>
+
+<br>
+
+```r
 
 library(ggplot2)
 e <- function(short, label, family, h2, se, panel)
@@ -5339,6 +5339,6 @@ p <- ggplot(est, aes(x = short, fill = label)) +
 print(p)
 ggsave(out_file, p, width = out_w, height = out_h, dpi = out_dpi, bg = "white")
 cat("wrote", out_file, "\n")
+
 ```
 </details>
-
