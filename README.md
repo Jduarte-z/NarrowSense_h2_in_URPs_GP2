@@ -10,17 +10,17 @@
 
 Under the classical quantitative genetics framework, an individual's phenotype for a complex trait can be decomposed as:
 
-```
+$$
 P = G + E = (A + D + I) + E
-```
+$$
 
-where `P` is the observed phenotype, `G` genetics, and `E` environment. Within "`G`"`A` is the additive genetic effect (the sum of average effects of alleles), `D` is the dominance effect (within-locus allelic interaction), `I` is the epistatic effect (between-locus interaction), and `E` is the environmental deviation.
+where $$P$$ is the observed phenotype, $$G$$ genetics, and $$E$$ environment. Within $$"G"$$ $$A$$ is the additive genetic effect (the sum of average effects of alleles), $$D$$ is the dominance effect (within-locus allelic interaction), $$I$$ is the epistatic effect (between-locus interaction), and $$E$$ is the environmental deviation.
 
 Because these components vary across individuals, the corresponding decomposition of the total phenotypic variance in a given population is:
 
-```
+$$
 VP = VA + VD + VI + VE + 2·Cov(G,E) + VGxE
-```
+$$
 
 The last two terms (the genotype–environment covariance and the genotype-by-environment interaction variance) are usually left out of the heritability analysis that we are about to.
 
@@ -34,8 +34,8 @@ In this GitHub, we do not provide a comprehensive coverage of these topics. For 
 
 Heritability is a **ratio**: it is the proportion of phenotypic variance attributable to genetic variance.
 
-- **Broad-sense heritability:** `H² = (VA + VD + VI) / VP`
-- **Narrow-sense heritability:** `h² = VA / VP`
+- **Broad-sense heritability:** $$H² = (VA + VD + VI) / VP$$
+- **Narrow-sense heritability:** $$h² = VA / VP$$
 
 Two properties are worth to mention:
 
@@ -46,13 +46,13 @@ Two properties are worth to mention:
 
 ### 1.3 Twin studies, GWAS, and the "missing heritability" problem
 
-Since the mid-20th century, heritability of complex traits was estimated primarily from twin and family designs. The classical ACE model partitions phenotypic variance into additive genetic (A), shared environmental (C), and unique environmental (E) components by exploiting the difference in genetic sharing between monozygotic (~1.0) and dizygotic (~0.5) twin pairs. Falconer's estimator, `h² = 2(r_MZ − r_DZ)`, is nominally a narrow-sense estimator, though in practice dominance, epistasis, shared environment, and assortative mating all load onto the A term.
+Since the mid-20th century, heritability of complex traits was estimated primarily from twin and family designs. The classical ACE model partitions phenotypic variance into additive genetic ($$A$$), shared environmental ($$C$$), and unique environmental ($$E$$) components by exploiting the difference in genetic sharing between monozygotic (~1.0) and dizygotic (~0.5) twin pairs. Falconer's estimator, $$h² = 2(r_MZ − r_DZ)$$, is nominally a narrow-sense estimator, though in practice dominance, epistasis, shared environment, and assortative mating all load onto the $$A$$ term.
 
 With the advent of genome-wide association studies, heritability could be estimated from genotype data in samples of "unrelated individuals". These methods estimate a distinct quantity:
 
-**SNP heritability (`h²_SNP`, sometimes `h²_g`)**: the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
+**SNP heritability ($$h²_SNP$$, sometimes $$h²_g$$)**: the proportion of phenotypic variance explained by the additive effects of the genotyped (or imputed) variants included in the model (usually, Single Nucleotide Polymorphisms).
 
-`h²_SNP` is expected to be smaller than `h²` because:
+$$h²_SNP$$ is expected to be smaller than $$h²$$ because:
 
 - Genotyping arrays interrogate common variation and tag rare causal variants poorly.
 - Even where causal variants are present, the additive random-effect model assumes independent, exchangeable SNP effects, which is an approximation.
@@ -60,23 +60,23 @@ With the advent of genome-wide association studies, heritability could be estima
 
 The gap between twin-based and GWAS-based estimates is the **"missing heritability" problem**. It reflects a combination of genuinely untagged variance, non-additive contributions, and the nature of family-based estimates (e.g. shared environment and assortative mating). A useful entry point to this literature is Manolio et al. (2009), [*Finding the missing heritability of complex diseases*](https://pmc.ncbi.nlm.nih.gov/articles/PMC2942068/), since we don't cover this aspect extensively in this repository.  
 
-**Hence, with this tutorial, you will be able to estimate `h²_SNP`, not `h²`**
+**Hence, with this tutorial, you will be able to estimate $$h²_SNP$$, not $$h²$$**
 
 ### 1.4 Binary traits and the liability scale
 
 All of the previous discussions were in principle developed for quantitative traits, but Parkinson's disease is a dichotomous outcome, which introduces two complications.
 
-**Scale.** Under the liability threshold model, each individual has an unobserved, normally distributed liability; individuals whose liability exceeds a threshold determined by the population prevalence `K` are affected. Heritability estimated on the observed 0/1 scale depends on the case-control ratio in the sample and is not comparable across studies. Estimates must therefore be reported on the **liability scale**, which is a property of the population rather than of the study design.
+**Scale.** Under the liability threshold model, each individual has an unobserved, normally distributed liability; individuals whose liability exceeds a threshold determined by the population prevalence $$K$$ are affected. Heritability estimated on the observed 0/1 scale depends on the case-control ratio in the sample and is not comparable across studies. Estimates must therefore be reported on the **liability scale**, which is a property of the population rather than of the study design.
 
-**Ascertainment.** Case-control cohorts are, by design, enriched for cases relative to the population (`P >> K`). This oversampling biases the naive observed-to-liability transformation and, more seriously, biases REML-based estimators when covariates such as ancestry principal components are included in the model.
+**Ascertainment.** Case-control cohorts are, by design, enriched for cases relative to the population ($$P >> K$$). This oversampling biases the naive observed-to-liability transformation and, more seriously, biases REML-based estimators when covariates such as ancestry principal components are included in the model.
 
-For PD we use `K = 0.005` as the primary population prevalence, consistent with the values used in previous published literature, and report sensitivity across `K ∈ {0.005, 0.01, 0.02}`. Prevalence is not measured with precision in underrepresented populations, and this uncertainty propagates directly into the liability-scale estimate. 
+For PD we use $$K = 0.005$$ as the primary population prevalence, consistent with the values used in previous published literature, and report sensitivity across $$K ∈ {0.005, 0.01, 0.02}$$. Prevalence is not measured with precision in underrepresented populations, and this uncertainty propagates directly into the liability-scale estimate. 
 
-### 1.5 Why estimate h²_SNP, and why in underrepresented populations?
+### 1.5 Why estimate $$h²_SNP$$, and why in underrepresented populations?
 
-The estimation of `h2_SNP` is relevant by its own means regardless of the population. Consider that it is computed using the same resources allocated for conducting genome-wide association studies, and since it represents the phenotypic variance explained by the same genetic variation screened in a GWAS framework, its value helps us to get closer to a comprehensive mapping of the genetic architecture of a complex trait in a given population. For example, giving a potential upper limit estimate on the discovery power that GWAS could have, or the virtual upper limit of the performance of polygenic risk scores derived from the GWASs in question (since the accuracy of a PRS would approach heritability estimates as sample size and increase genetic variation is captured without bound). 
+The estimation of $$h2_SNP$$ is relevant by its own means regardless of the population. Consider that it is computed using the same resources allocated for conducting genome-wide association studies, and since it represents the phenotypic variance explained by the same genetic variation screened in a GWAS framework, its value helps us to get closer to a comprehensive mapping of the genetic architecture of a complex trait in a given population. For example, giving a potential upper limit estimate on the discovery power that GWAS could have, or the virtual upper limit of the performance of polygenic risk scores derived from the GWASs in question (since the accuracy of a PRS would approach heritability estimates as sample size and increase genetic variation is captured without bound). 
 
-And beyond this point, exploring `h2_SNP` estimation in underrepresented populations becomes meaningful in several ways. First, it will increase the methodological capacity so it does not depend on European reference data and pipelines. Nearly every heritability estimator in common use was developed and validated on European-ancestry samples, and their behavior in underrepresented, admixed cohorts is comparatively uncharacterized, especially for Parkinson's Disease. Additionally, it will help us to showcase the heterogeneity, challenges, limitations and future directions when computing and interpreting these type of estimates from diverse genomic data. 
+And beyond this point, exploring $$h2_SNP$$ estimation in underrepresented populations becomes meaningful in several ways. First, it will increase the methodological capacity so it does not depend on European reference data and pipelines. Nearly every heritability estimator in common use was developed and validated on European-ancestry samples, and their behavior in underrepresented, admixed cohorts is comparatively uncharacterized, especially for Parkinson's Disease. Additionally, it will help us to showcase the heterogeneity, challenges, limitations and future directions when computing and interpreting these type of estimates from diverse genomic data. 
 
 ---
 
@@ -88,8 +88,8 @@ Provide a reproducible, step-by-step workflow for estimating SNP heritability in
 
 ### Project aims
 
-1. **Lay out the analytical framework** for estimating `h²_SNP` in underrepresented populations (URPs), with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation and different heritability models. 
-2. **Collaborate internationally** to build the capacity needed to estimate `h2_SNP` as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs. 
+1. **Lay out the analytical framework** for estimating $$h²_SNP$$ in underrepresented populations (URPs), with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation and different heritability models. 
+2. **Collaborate internationally** to build the capacity needed to estimate $$h2_SNP$$ as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs. 
 3. **Characterize heterogeneity, methodological uncertainty and challenges** when computing this estimates, in light of a field whose methods were developed and validated mainly on European-ancestry data.
 
 ---
@@ -98,22 +98,22 @@ Provide a reproducible, step-by-step workflow for estimating SNP heritability in
 
 A comprehensive review of heritability estimation methods is beyond the scope of this repository. A curated reference list is available [here](https://docs.google.com/document/d/1mcoMHNsUat0rzlDItxcBWFDSfRwRMm4rFGBU8VqcIG4/edit?usp=sharing). Disclaimer, the list is not intended to be comprehensive and its reading is not mandatory, but it definitely will help to satisfy your curiosity to a certain extent. 
 
-On that note, we can make a broad classification of the current methods for estimating `h2_SNP` based on the concept similarity that they exploit. Plus some caveats on their challenges when applied to URPs. 
+On that note, we can make a broad classification of the current methods for estimating $$h2_SNP$$ based on the concept similarity that they exploit. Plus some caveats on their challenges when applied to URPs. 
 
 1. **Methods that exploit linkage disequilibrium among genetic variants (LD scores)**: they require the presence of an LD reference panel appropriate to the population in question and tend to give more conservative (lower) heritability estimates. Classically exemplified in the Linkage Disequilibrium Score Regression (LDSC) software. Some notes about it:
    - **(a)** For European populations this is the go-to method when sample sizes are big, since the core logic is based on regressing the per-variant chi-square of GWAS summary statistics on the LD scores from the reference panel. So you will only need summary statistics and European reference panel-derived LD scores.
    - **(b)** When the mean chi-square of a given GWAS summary statistics is greater than 1, that means that mean association metrics for each variant across the genome are inflated. And this could be due to population stratification and/or the polygenicity of a given trait. Precisely regressing the per-variant chi-square from a GWAS on population-matched LD scores could help to differentiate these two, while at the same time computing the heritability of the complex trait: confounding raises the regression **intercept** (it inflates chi-squares regardless of how much LD a variant tags), whereas true polygenic signal raises the **slope** (variants tagging more of the genome carry more signal), and it is the slope that yields the heritability estimate. Just FYI, The authors of LDSC recommend a mean chi-square of **at least** 1.02 in order for a GWAS to be suitable for LDSC regression (in the pipeline we compute it). 
-   - **(c)** For URPs, appropriate reference panels are usually lacking, and the admixture that characterizes these cohorts violates some of the mathematical assumptions of the method. Hence, individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). Two adjustments are involved: correcting the pairwise `r2` for those principal components, and widening the window over which LD scores are computed (20 cM instead of the 1 cM default), because admixture LD decays far more slowly than LD within a single ancestral population. This is the main logic behind the adaptation of LDSC for admixed populations called covariate-LDSC (cov-LDSC). And in case you were wondering, when cov-LDSC is benchmarked in more "homogeneous populations" they yield very similar estimates to the classic LDSC (for example using an in-sample European ref panel instead of One Thousand Genomes Project that is the standard).
-2. **Methods that exploit genotypic similarity among unrelated individuals**: they require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates, and their computational cost grows steeply with sample size (the GRM is `N x N`, and GREML additionally inverts an `N x N` matrix at every iteration). Some notes about them:
+   - **(c)** For URPs, appropriate reference panels are usually lacking, and the admixture that characterizes these cohorts violates some of the mathematical assumptions of the method. Hence, individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). Two adjustments are involved: correcting the pairwise $$r2$$ for those principal components, and widening the window over which LD scores are computed (20 cM instead of the 1 cM default), because admixture LD decays far more slowly than LD within a single ancestral population. This is the main logic behind the adaptation of LDSC for admixed populations called covariate-LDSC (cov-LDSC). And in case you were wondering, when cov-LDSC is benchmarked in more "homogeneous populations" they yield very similar estimates to the classic LDSC (for example using an in-sample European ref panel instead of One Thousand Genomes Project that is the standard).
+2. **Methods that exploit genotypic similarity among unrelated individuals**: they require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates, and their computational cost grows steeply with sample size (the GRM is $$N x N$$, and GREML additionally inverts an $$N x N$$ matrix at every iteration). Some notes about them:
    - **(a)** The most famous example for these type of methods is embodied by the Genome-Wide Complex Trait Analysis Genomic relatedness matrix restricted maximum likelihood or GCTA-GREML toolkit. It fits a linear mixed model in which the genetic contribution of each individual enters as a random effect whose covariance is proportional to the GRM, and estimates the genetic and residual variance components by restricted maximum likelihood (REML).
    - **(b)** Alternative methods regress the phenotypic cross-product of each pair of individuals on their genotypic similarity, known as Haseman-Elston (HE) regression. The Phenotype Correlation-Genotype Correlation (PCGC) method extends HE regression by adding a correction for case ascertainment under a liability-threshold model, which is what makes it appropriate for ascertained binary traits. Because these are moment-based estimators, they do not require specifying a full likelihood for the observed data (PCGC still assumes the liability-threshold model), they are more robust under case ascertainment bias, and they are a bit more computationally efficient. However, they could be a bit more unstable when sample sizes are on the lower side (to keep in mind).
    - **Both (a) and (b)** estimate heritability from a GRM, a table of how genetically similar each pair of participants is. On the logic that if a trait is heritable, people who share more genome should also resemble each other more in that trait. Note that this signal comes from chance variation in genome-wide sharing among individuals who are **not** close relatives, which is why relatives are pruned out beforehand. What the matrix has to capture, then, is genetic similarity measured against an *ancestry-matched* expectation, but the standard calculation compares everyone to a single cohort-average allele frequency, which in URPs that tend to be admixed describes no one accurately. For example, two unrelated participants who both carry high proportions of a given ancestry will deviate from the average in the same direction at thousands of variants, and shared ancestry could be mistaken for excess genome sharing, breaking some of the assumptions made by the methods in question. Hence, for URPs, an ancestry-aware GRM is highly advisable to compute and benchmark alongside classical methods (see below).
 
-Furthermore, there are a couple of different additional "axes" to classify `h2_SNP` estimation methods, in particular:
+Furthermore, there are a couple of different additional "axes" to classify $$h2_SNP$$ estimation methods, in particular:
 
-1. **Based on the Heritability model**: every estimator carries a prior assumption about how heritability is distributed across the genome. Specifically, how variant's expected contribution depends on its allele frequency and how much LD it sits in. The general form for describing this is `E[h²_j] ∝ w_j · [f_j(1−f_j)]^(1+α)`, where `f_j` is allele frequency and `w_j` is an LD-based weight.
-	- **(a)** All of the above methods tend to do `w_j = 1` and, conventionally, `α = −1` (the so called GCTA model). This makes `E[h²_j]` constant: every SNP is expected to contribute equally, regardless of frequency or LD. LDSC assumes essentially the same thing.
-	- **(b)** The human default model described by the creators of [LDAK](https://dougspeed.com/heritability-model/), is often described as an alternative to the classic GCTA model. It sets `α = −0.25` and it is currently recommended for the GRM based methods. However, the GRM must be computed by the LDAK software itself, which limits their adaptation for an ancestry-aware GRM (a currently limitation of the field). 
+1. **Based on the Heritability model**: every estimator carries a prior assumption about how heritability is distributed across the genome. Specifically, how variant's expected contribution depends on its allele frequency and how much LD it sits in. The general form for describing this is $$E[h²_j] ∝ w_j · [f_j(1−f_j)]^(1+α)$$, where $$f_j$$ is allele frequency and $$w_j$$ is an LD-based weight.
+	- **(a)** All of the above methods tend to do $$w_j = 1$$ and, conventionally, $$α = −1$$ (the so called GCTA model). This makes $$E[h²_j]$$ constant: every SNP is expected to contribute equally, regardless of frequency or LD. LDSC assumes essentially the same thing.
+	- **(b)** The human default model described by the creators of [LDAK](https://dougspeed.com/heritability-model/), is often described as an alternative to the classic GCTA model. It sets $$α = −0.25$$ and it is currently recommended for the GRM based methods. However, the GRM must be computed by the LDAK software itself, which limits their adaptation for an ancestry-aware GRM (a currently limitation of the field). 
 2. **Based on genome-wide partition**: this alludes whether a single variance component for all genetic variants is used, or a split into bins based on different parameters is implemented. 
 	- **(a)** All of the above methods (in the way we intend them to be used) use a single variance component, aka, they use genome-wide data all at once. However an alternative is to decompose genome-wide data in bins based on LD scores or minor allele frequency, since it has been shown that heritability tend to vary based on different thresholds for this data. However, the cost of including more parameters could be larger standard errors and the need for bigger sample sizes that underrepresented cohorts frequently don't have. However, they have not been benchmarked in URPs, and based on your input discussion, we can brainstorm if it worth to include in our analysis (since the original project is based on single variance component methods). 
 
@@ -132,7 +132,7 @@ For b) we are going to use GCTA-GREML and PCGC, with both a regular GRM and an a
 Here is a summary of the analysis to be performed:
 
 | # | Arm | GRM | Model | Role in the design |
-|---|---|---|---|---|
+|:---|:---|:---|:---|:---|
 | 1 | **cov-LDSC**, in-sample LD scores | — | α =−1 | Summary-statistic based, with the caveat of in-sample reference panel, validated in admixed cohorts by Luo et al., and completely independent of GRM construction. |
 | 2 | **GREML** + standard GCTA GRM | GCTA | α =−1 | One of the field's reference implementations. This is the number most directly comparable to older published PD heritability estimates, like Keller et al., |
 | 3 | **GREML** + PC-Relate GRM | PC-Relate | α =−1 | Isolates GRM construction. Same estimator, same SNPs, same covariates as arm 2 — only ancestry residualisation differs. |
@@ -166,7 +166,7 @@ Another
 
 # First wave of analysis: Covariate-adjusted Linkage Disequilibrium score regression (cov-LDSC)
 
-Standard LDSC estimates `h²_SNP` by regressing GWAS chi-square statistics on LD scores, typically computed from an external reference panel such as 1000 Genomes. Two of its assumptions fail in admixed cohorts: no matched reference panel exists, and long-range admixture LD violates the assumption that LD is negligible beyond a short genomic window.
+Standard LDSC estimates $$h²_SNP$$ by regressing GWAS chi-square statistics on LD scores, typically computed from an external reference panel such as 1000 Genomes. Two of its assumptions fail in admixed cohorts: no matched reference panel exists, and long-range admixture LD violates the assumption that LD is negligible beyond a short genomic window.
 
 cov-LDSC [(Luo et al. 2021)](https://pubmed.ncbi.nlm.nih.gov/33987664/) addresses both. Principal components are projected out of the genotypes **before** LD is computed, so that the LD scores are adjusted for the same covariates included in the association model. LD scores are then computed in-sample rather than from an external panel.
 
@@ -176,7 +176,7 @@ Practical consequences for implementation:
 - **Number of PCs.** Ten PCs is the published recommendation, though the appropriate number depends on the structure of the specific cohort and should be checked empirically.
 - **Subsampling.** In-sample LD scores can be computed on a random subset of individuals. However in order to use the same genetic data for all the main analysis, we are planning on using the full cohort as its own reference for the LD scores. Additionally, filtering the genetic data for the whole cohort and use it in the reference panel will also serve as the basis for running a quick GWAS with plink in the same universe of samples and SNPs. Nonetheless, if it becomes computationally unscalable, we can revise this and look for an alternative. 
 - **MAF filter.** Restrict to MAF > 0.01 for LD score computation.
-- **Estimand.** Because LD is computed from array genotypes rather than refernce panel sequence data, cov-LDSC targets the same estimand as GCTA (`h²_g`) rather than LDSC's usual `h²_common`. This makes it directly more comparable to the GRM-based estimate below.
+- **Estimand.** Because LD is computed from array genotypes rather than refernce panel sequence data, cov-LDSC targets the same estimand as GCTA ($$h²_g$$) rather than LDSC's usual $$h²_common$$. This makes it directly more comparable to the GRM-based estimate below.
 
 
 ## Step 0. Project Structure 
@@ -2062,7 +2062,7 @@ Two quick sanity checks before moving on. First, confirm that all 22 chromosomes
 
 </details>
 
-Second, remember the point from the cov-LDSC section above: the whole reason for the 20 cM window is that in admixed cohorts the mean LD score keeps rising with window size until the PC adjustment is applied. If you want to verify that your cohort's LD scores have actually plateaued, you can re-run a single chromosome across a few window sizes (for example 1, 5, 10, 20 and 50 cM) and plot the mean `L2` against the window. I don't believe this would be needed for our project but it is good to know just in case. 
+Second, remember the point from the cov-LDSC section above: the whole reason for the 20 cM window is that in admixed cohorts the mean LD score keeps rising with window size until the PC adjustment is applied. If you want to verify that your cohort's LD scores have actually plateaued, you can re-run a single chromosome across a few window sizes (for example 1, 5, 10, 20 and 50 cM) and plot the mean $$L2$$ against the window. I don't believe this would be needed for our project but it is good to know just in case. 
 
 And FYI, considering the test dataset that we used in LARGE-PD with 7.1K samples and more than 8M variants (post filtering). The longest chromosomes (1-5) took a maximum of 8 hours each, with the configurations for the computing cluster specified. Hence, this is one of the most computationally extensive steps
 
@@ -4032,7 +4032,7 @@ greml_pcrel_prev_0.02.hsq             greml_pcrel_prev_0.005.log
 
 </details>
 
-Read the `.hsq` exactly as described at the end of Step 9: `n` should match your unrelated sample count, `V(G)/Vp` is identical across the three runs by construction, and `V(G)/Vp_L` is the number we report.
+Read the `.hsq` exactly as described at the end of Step 9: `n` should match your unrelated sample count, $$V(G)/Vp$$ is identical across the three runs by construction, and $$V(G)/Vp_L$$ is the number we report.
 
 What is new here is the comparison. Put the two grids side by side at the primary prevalence:
 
@@ -4108,7 +4108,7 @@ Three things are worth knowing before you launch it.
 
 **The GRM has to be covariate-adjusted first.** LDAK's `--adjust-grm` projects the covariates out of the kinship matrix, and PCGC needs that done when ancestry PCs are among the covariates. It depends only on the covariates, not on the prevalence, so it runs once and is reused across the whole grid.
 
-**Unlike GREML, the prevalence enters the estimation itself.** In Step 9 you saw `V(G)/Vp` come out identical across the three `K` values, because GREML fits on the observed scale and only transforms afterwards. PCGC does not work that way: the ascertainment correction uses `K` inside the moment equations, so all three grids differ from scratch.
+**Unlike GREML, the prevalence enters the estimation itself.** In Step 9 you saw $$V(G)/Vp$$ come out identical across the three $$K$$ values, because GREML fits on the observed scale and only transforms afterwards. PCGC does not work that way: the ascertainment correction uses $$K$$ inside the moment equations, so all three grids differ from scratch.
 
 **Start small.** The defaults are 100 replicates at each of three prevalences, so 303 LDAK runs per GRM, 606 in total. Do a smoke test first with `NPERM=10` to confirm everything parses if you want, then launch the full thing.
 
