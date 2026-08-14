@@ -5117,8 +5117,7 @@ Everything in the folder is plain text or png, so `less` and any image viewer ar
 
 
 ---
-# Wrapping up
----
+# Step 14: Wrapping up
 
 # Notes after you finish the tutorial 
 
