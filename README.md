@@ -102,30 +102,30 @@ On that note, we can make a broad classification of the current methods for esti
 
 1. **Methods that exploit linkage disequilibrium among genetic variants (LD scores)**: they require the presence of an LD reference panel appropriate to the population in question and tend to give more conservative (lower) heritability estimates. Classically exemplified in the Linkage Disequilibrium Score Regression (LDSC) software. Some notes about it:
    - **(a)** For European populations this is the go-to method when sample sizes are big, since the core logic is based on regressing the per-variant chi-square of GWAS summary statistics on the LD scores from the reference panel. So you will only need summary statistics and European reference panel-derived LD scores.
-   - **(b)** When the mean chi-square of a given GWAS summary statistics is greater than 1, that means that mean association metrics for each variant across the genome are inflated. And this could be due to population stratification and/or the polygenicity of a given trait. Precisely regressing the per-variant chi-square from a GWAS on population-matched LD scores could help to differentiate these two, while at the same time computing the heritability of the complex trait: confounding raises the regression **intercept** (it inflates chi-squares regardless of how much LD a variant tags), whereas true polygenic signal raises the **slope** (variants tagging more of the genome carry more signal), and it is the slope that yields the heritability estimate. Just FYI, The authors of LDSC recommend a mean chi-square of **at least** 1.02 in order for a GWAS to be suitable for LDSC regression. 
-   - **(c)** For URPs, appropriate reference panels are usually lacking, and the admixture that characterizes these cohorts violates some of the mathematical assumptions of the method. Hence, individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). Two adjustments are involved: correcting the pairwise `r2` for those principal components, and widening the window over which LD scores are computed (20 cM instead of the 1 cM default), because admixture LD decays far more slowly than LD within a single ancestral population. This is the main logic behind the adaptation of LDSC for admixed populations called covariate-LDSC (cov-LDSC). And in case you were wondering, when cov-LDSC is benchmarked in more "homogeneous populations" they yield very similar estimates to the classic LDSC. 
+   - **(b)** When the mean chi-square of a given GWAS summary statistics is greater than 1, that means that mean association metrics for each variant across the genome are inflated. And this could be due to population stratification and/or the polygenicity of a given trait. Precisely regressing the per-variant chi-square from a GWAS on population-matched LD scores could help to differentiate these two, while at the same time computing the heritability of the complex trait: confounding raises the regression **intercept** (it inflates chi-squares regardless of how much LD a variant tags), whereas true polygenic signal raises the **slope** (variants tagging more of the genome carry more signal), and it is the slope that yields the heritability estimate. Just FYI, The authors of LDSC recommend a mean chi-square of **at least** 1.02 in order for a GWAS to be suitable for LDSC regression (in the pipeline we compute it). 
+   - **(c)** For URPs, appropriate reference panels are usually lacking, and the admixture that characterizes these cohorts violates some of the mathematical assumptions of the method. Hence, individual data is required to compute an in-sample reference panel and adjust the LD scores for the long range LD that is present in admixed populations (using the same principal components that are included in the GWAS that generates the summary statistics to be used, see below). Two adjustments are involved: correcting the pairwise `r2` for those principal components, and widening the window over which LD scores are computed (20 cM instead of the 1 cM default), because admixture LD decays far more slowly than LD within a single ancestral population. This is the main logic behind the adaptation of LDSC for admixed populations called covariate-LDSC (cov-LDSC). And in case you were wondering, when cov-LDSC is benchmarked in more "homogeneous populations" they yield very similar estimates to the classic LDSC (for example using an in-sample European ref panel instead of One Thousand Genomes Project that is the standard).
 2. **Methods that exploit genotypic similarity among unrelated individuals**: they require the computation of Genomic Relatedness Matrices (GRMs), tend to give higher heritability estimates, and their computational cost grows steeply with sample size (the GRM is `N x N`, and GREML additionally inverts an `N x N` matrix at every iteration). Some notes about them:
    - **(a)** The most famous example for these type of methods is embodied by the Genome-Wide Complex Trait Analysis Genomic relatedness matrix restricted maximum likelihood or GCTA-GREML toolkit. It fits a linear mixed model in which the genetic contribution of each individual enters as a random effect whose covariance is proportional to the GRM, and estimates the genetic and residual variance components by restricted maximum likelihood (REML).
-   - **(b)** Alternative methods regress the phenotypic cross-product of each pair of individuals on their genotypic similarity, known as Haseman-Elston (HE) regression. The Phenotype Correlation-Genotype Correlation (PCGC) method extends HE regression by adding a correction for case ascertainment under a liability-threshold model, which is what makes it appropriate for ascertained binary traits. Because these are moment-based estimators, they do not require specifying a full likelihood for the observed data (PCGC still assumes the liability-threshold model), they are more robust under case ascertainment bias, and they are a bit more computationally efficient.
+   - **(b)** Alternative methods regress the phenotypic cross-product of each pair of individuals on their genotypic similarity, known as Haseman-Elston (HE) regression. The Phenotype Correlation-Genotype Correlation (PCGC) method extends HE regression by adding a correction for case ascertainment under a liability-threshold model, which is what makes it appropriate for ascertained binary traits. Because these are moment-based estimators, they do not require specifying a full likelihood for the observed data (PCGC still assumes the liability-threshold model), they are more robust under case ascertainment bias, and they are a bit more computationally efficient. However, they could be a bit more unstable when sample sizes are on the lower side (to keep in mind).
    - **Both (a) and (b)** estimate heritability from a GRM, a table of how genetically similar each pair of participants is. On the logic that if a trait is heritable, people who share more genome should also resemble each other more in that trait. Note that this signal comes from chance variation in genome-wide sharing among individuals who are **not** close relatives, which is why relatives are pruned out beforehand. What the matrix has to capture, then, is genetic similarity measured against an *ancestry-matched* expectation, but the standard calculation compares everyone to a single cohort-average allele frequency, which in URPs that tend to be admixed describes no one accurately. For example, two unrelated participants who both carry high proportions of a given ancestry will deviate from the average in the same direction at thousands of variants, and shared ancestry could be mistaken for excess genome sharing, breaking some of the assumptions made by the methods in question. Hence, for URPs, an ancestry-aware GRM is highly advisable to compute and benchmark alongside classical methods (see below).
 
 Furthermore, there are a couple of different additional "axes" to classify `h2_SNP` estimation methods, in particular:
 
 1. **Based on the Heritability model**: every estimator carries a prior assumption about how heritability is distributed across the genome. Specifically, how variant's expected contribution depends on its allele frequency and how much LD it sits in. The general form for describing this is `E[h²_j] ∝ w_j · [f_j(1−f_j)]^(1+α)`, where `f_j` is allele frequency and `w_j` is an LD-based weight.
 	- **(a)** All of the above methods tend to do `w_j = 1` and, conventionally, `α = −1` (the so called GCTA model). This makes `E[h²_j]` constant: every SNP is expected to contribute equally, regardless of frequency or LD. LDSC assumes essentially the same thing.
-	- **(b)** The human default model described by the creators of [LDAK](https://dougspeed.com/heritability-model/), is often described as an alternative to the classic GCTA model. It sets `α = −0.25` and, in its currently recommended form (LDAK-Thin), also restricts the variants entering the GRM through LD-based thinning, so that `w_j` is effectively 0 or 1 over a thinned SNP set.
+	- **(b)** The human default model described by the creators of [LDAK](https://dougspeed.com/heritability-model/), is often described as an alternative to the classic GCTA model. It sets `α = −0.25` and it is currently recommended for the GRM based methods. However, the GRM must be computed by the LDAK software itself, which limits their adaptation for an ancestry-aware GRM (a currently limitation of the field). 
 2. **Based on genome-wide partition**: this alludes whether a single variance component for all genetic variants is used, or a split into bins based on different parameters is implemented. 
-	- **(a)** All of the above methods (in the way we intend them to be used) use a single variance component, aka, they use genome-wide data all at once. However an alternative is to decompose genome-wide data in bins based on LD scores or minor allele frequency, since it has been shown that heritability tend to vary based on different thresholds for this data. However, the cost of including more parameters tend to be larger standard errors and the need for bigger sample sizes that underrepresented cohorts frequently don't have. 
+	- **(a)** All of the above methods (in the way we intend them to be used) use a single variance component, aka, they use genome-wide data all at once. However an alternative is to decompose genome-wide data in bins based on LD scores or minor allele frequency, since it has been shown that heritability tend to vary based on different thresholds for this data. However, the cost of including more parameters could be larger standard errors and the need for bigger sample sizes that underrepresented cohorts frequently don't have. However, they have not been benchmarked in URPs, and based on your input discussion, we can brainstorm if it worth to include in our analysis (since the original project is based on single variance component methods). 
 
 ---
 
 ## 4. Putting the benchmarking pipeline together 
 
-Based on the brief overview of the main methods available, you can quickly realize that even for European populations there is no gold-standard method for estimating SNP heritability. And for URPs there are additional problems to solve. Hence, considering that each estimator differ in what they assume and their specific requirements and limitations in diverse populations, we aim to get a spread of estimates across a pre-specified set of methods and across a wide range of different plausible PD prevalences. 
+Based on the brief overview of the main methods available, you can quickly realize that even for European populations there is no gold-standard method for estimating SNP heritability. And for URPs there are additional problems to solve. Hence, considering that each estimator differ in what they assume and their specific requirements and limitations in diverse populations, we aim to get a spread of estimates across a pre-specified set of methods and across a somewhat wide range of different plausible PD prevalences. 
 
-Our analysis will follow two prongs, a) using methods that exploit  LD scores adapted for URPs, and b) methods that exploit genotypic similarity among unrelated samples. 
+Our analysis will follow two prongs, a) using methods that exploit  LD scores adapted for URPs (steps 1-7), and b) methods that exploit genotypic similarity among unrelated samples (steps 8-12). 
 
-For a) we are going to focus on cov-LDSC that requires an in-sample reference panel, computation of adjusted LD scores by principal components and the summary statistics from a GWAS ran on the same samples. The caveat of this method in URPs is that the principal components included in the adjustment of the LD scores in the in-sample reference panel, must be the same that were included in the GWAS regression model. Hence, in order to enforce this requirement, we will run a GWAS with plink with the same universe of samples and SNPs to be included in the reference panel. 
+For a) we are going to focus on cov-LDSC that requires an in-sample reference panel, computation of adjusted LD scores by principal components and the summary statistics from a GWAS ran on the same samples. The caveat of this method in URPs is that the principal components included in the adjustment of the LD scores in the in-sample reference panel, must be the same that were included in the GWAS regression model. And it could not be from a generalized linear mixed model (GLM) (because the random effects of GLMs break the math assumed by LDSC) Hence, in order to enforce this requirement, we will run a GWAS with plink (a generalized linear model) with the same universe of samples and SNPs to be included in the reference panel. 
 
 For b) we are going to use GCTA-GREML and PCGC, with both a regular GRM and an ancestry-aware GRM computed through the R package PC-Relate. Hence, a total of four different GRM based heritability results will be reported. Additionally, because PCGC is computationally cheap enough to be re-run many times, we will derive estimates under the null hypothesis of no genetic signal by shuffling the sample labels of the classic GRM kinships and of the ancestry-aware GRM ones.
 
@@ -143,10 +143,9 @@ Here is a summary of the analysis to be performed:
 
 Here, now you may be noticing two things: 1) that all of these methods rely on a uniform heritability model (alpha = -1). And 2) none of them incorporate genome-wide partition adaptations. 
 
-And the reason of not including these two other "axes" of heritability estimation methods rely on the conditions that they impose to the analysis. For example, if we wanted to incorporate a different heritability model, like the LDAK Human Default model (alpha = -0.25) we would have to restrict the benchmark to the GRM computed by this software, since the SNP weights and the thinning are encoded in its computation itself, so no ancestry-aware side by side benchmark for this model could be done (one of the limitations of current methods). On the other hand, with respect to genome-wide partitioning, they are not part of the main analysis since it has been shown to require higher sample sizes to survive the diluting of the signal when partitioning the genome, a limitation that is inherent for URPs currently. 
+And the reason of not including these two other "axes" of heritability estimation methods rely on the conditions that they impose to the analysis. For example, if we wanted to incorporate a different heritability model, like the LDAK Human Default model (alpha = -0.25) we would have to restrict the benchmark to the GRM computed by this software, since the SNP weights and the thinning are encoded in its computation itself, so no ancestry-aware side by side benchmark for this model could be done (one of the limitations of current methods). On the other hand, with respect to genome-wide partitioning, they are not part of the main analysis since it has been shown to require higher sample sizes. 
 
-Nonetheless, your input as collaborators is crucial, and if you consider that these are worth including as sensitivity analyses, we can discuss the way to do it. Just take into consideration that the initial analytical plan approved by the Project Proposal, Approval, and Execution Working Group within GP2 covers the seven arms listed above, so any addition would be reported as a declared sensitivity analysis rather than as part of the primary results.
-
+However, they have not been benchmarked yet in URPs, and we are also open to discuss if include these type as part of sensitivity analysis in the future. Hence, your input as collaborators is crucial, and if you consider that these are worth including as sensitivity analyses, we can think about ways to do it. Just take into consideration that the initial analytical plan approved by the Project Proposal, Approval, and Execution Working Group within GP2 covers the seven arms listed above, so any addition would be reported as a declared sensitivity analysis rather than as part of the primary results. 
 ---
 
 # Starting the analysis 
@@ -159,11 +158,13 @@ An assumption that I'm making here is that you are working in a Linux machine an
 
 I don't anticipate it will make that much of a difference working with slightly newer or older versions of conda, but just FYI, I was working with conda 26.5.3 version.
 
-An **important disclaimer**: this tutorial was thought so you can run the analysis through the terminal of your institution computing cluster, and all the names of folders and files used here are generic, so relative paths could be use and provide a (hopefully) easy run. Down below I show some examples when working with SLURM and sending multiple jobs to your computing cluster administrator system so the analysis could speed up (with several jobs in parallel when feasible). However, if you don't have access to a computing cluster, and are working in cloud services like verily, I also provide script here in order to run it interactively with the terminal (just consider that this part will take longer)
+An **important disclaimer**: this tutorial was thought so you can run the analysis through the terminal of your institution computing cluster, and all the names of folders and files used here are generic, so relative paths could be use and provide a (hopefully) easy run. Down below I show some examples when working with SLURM and sending multiple jobs to your computing cluster administrator system so the analysis could speed up (with several jobs in parallel when feasible). However, if you don't have access to a computing cluster, and are working in cloud services like verily, I also provide script here in order to run it interactively with the terminal (just consider that this part will take longer).
 
 I highly encourage you to follow the same naming and folder structure patterns described here so we can maximize the reproducibility of the pipeline. Additionally, here we use a bunch of different programs and environments that require specific versions. How to download them and use them will be covered as soon as we need them. Just consider that in order to avoid conflict between possible versions of the programs that you may have, stick with the naming convention and paths that we use here, in that way, everything could be contained in a specific folder dedicated to this analysis, and (hopefully) we don't mess up with your current program's set up. 
 
-# First analysis: Covariate-adjusted Linkage Disequilibrium score regression (cov-LDSC)
+Another 
+
+# First wave of analysis: Covariate-adjusted Linkage Disequilibrium score regression (cov-LDSC)
 
 Standard LDSC estimates `h²_SNP` by regressing GWAS chi-square statistics on LD scores, typically computed from an external reference panel such as 1000 Genomes. Two of its assumptions fail in admixed cohorts: no matched reference panel exists, and long-range admixture LD violates the assumption that LD is negligible beyond a short genomic window.
 
@@ -186,15 +187,15 @@ I will start by creating our working directory
 <summary>terminal example: creating the working directory and the genetic_data folder</summary>
 
 ```console
-(base) [duartej3@lri-r10 ~]$ mkdir working_directory_h2
-(base) [duartej3@lri-r10 ~]$ #then, get insde and create the folder to store genetic data 
-(base) [duartej3@lri-r10 ~]$ cd working_directory_h2/
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir genetic_data
-(base) [duartej3@lri-r10 working_directory_h2]$ # should look like this:
-(base) [duartej3@lri-r10 working_directory_h2]$ ls
+(base) [duarte@node1 ~]$ mkdir working_directory_h2
+(base) [duarte@node1 ~]$ #then, get insde and create the folder to store genetic data 
+(base) [duarte@node1 ~]$ cd working_directory_h2/
+(base) [duarte@node1 working_directory_h2]$ mkdir genetic_data
+(base) [duarte@node1 working_directory_h2]$ # should look like this:
+(base) [duarte@node1 working_directory_h2]$ ls
 genetic_data
-(base) [duartej3@lri-r10 working_directory_h2]$ pwd
-/home/duartej3/working_directory_h2
+(base) [duarte@node1 working_directory_h2]$ pwd
+/home/duarte/working_directory_h2
 
 ```
 
@@ -215,18 +216,18 @@ Here we are going to create a symlink [(like a type of shortcut in Linux)] (http
 <summary>terminal example: creating the symlink to the imputed data and checking that it resolves</summary>
 
 ```console
-(base) [duartej3@lri-r10 working_directory_h2]$ pwd
-/home/duartej3/working_directory_h2
-(base) [duartej3@lri-r10 working_directory_h2]$ ls
+(base) [duarte@node1 working_directory_h2]$ pwd
+/home/duarte/working_directory_h2
+(base) [duarte@node1 working_directory_h2]$ ls
 genetic_data
-(base) [duartej3@lri-r10 genetic_data]$ # here is where we store our imputed data:
-(base) [duartej3@lri-r10 genetic_data]$ ls /home/duartej3/backups/ridiculously_large_path/imputed_data 
-(base) [duartej3@lri-r10 genetic_data]$ ln -s /home/duartej3/backups/ridiculously_large_path/imputed_data ./imputed
-(base) [duartej3@lri-r10 genetic_data]$ # you will only have to change the actual path for your imputed data, keep the ./ imputed folder name as it is (this is important) 
-(base) [duartej3@lri-r10 genetic_data]$ # then, you will see the symlink and try to ls it
-(base) [duartej3@lri-r10 genetic_data]$ ls 
+(base) [duarte@node1 genetic_data]$ # here is where we store our imputed data:
+(base) [duarte@node1 genetic_data]$ ls /home/duarte/backups/ridiculously_large_path/imputed_data 
+(base) [duarte@node1 genetic_data]$ ln -s /home/duarte/backups/ridiculously_large_path/imputed_data ./imputed
+(base) [duarte@node1 genetic_data]$ # you will only have to change the actual path for your imputed data, keep the ./ imputed folder name as it is (this is important) 
+(base) [duarte@node1 genetic_data]$ # then, you will see the symlink and try to ls it
+(base) [duarte@node1 genetic_data]$ ls 
 imputed
-(base) [duartej3@lri-r10 genetic_data]$ ls imputed/
+(base) [duarte@node1 genetic_data]$ ls imputed/
 22test.imiss           chr11.dose.vcf.gz      chr_12.zip.md5         chr_14.zip             chr16.info.gz          chr18.dose.vcf.gz.csi  chr1.dose.vcf.gz       chr_20.zip.md5         chr_22.zip            chr3.info.gz          chr5.dose.vcf.gz.csi  chr7.dose.vcf.gz      chr_8.zip.md5            index_vcf.sh
 22test.lmiss           chr11.dose.vcf.gz.csi  chr13.dose.vcf.gz      chr_14.zip.md5         chr_16.zip             chr18.info.gz          chr1.dose.vcf.gz.csi   chr21.dose.vcf.gz      chr_22.zip.md5        chr_3.zip             chr5.info.gz          chr7.dose.vcf.gz.csi  chr9.dose.vcf.gz         logs
 22test.log             chr11.info.gz          chr13.dose.vcf.gz.csi  chr15.dose.vcf.gz      chr_16.zip.md5         chr_18.zip             chr1.info.gz           chr21.dose.vcf.gz.csi  chr2.dose.vcf.gz      chr_3.zip.md5         chr_5.zip             chr7.info.gz          chr9.dose.vcf.gz.csi     qc_report.txt
@@ -259,16 +260,15 @@ Before running the script, make sure you have the latest version of plink2 insta
 <summary>terminal example: downloading plink2 and plink1 into ./programs and checking both executables</summary>
 
 ```console
-(base) [duartej3@lri-r10 working_directory_h2]$ pwd
-/home/duartej3/working_directory_h2
-(base) [duartej3@lri-r10 working_directory_h2]$ ls 
+(base) [duarte@node1 working_directory_h2]$ pwd
+/home/duarte/working_directory_h2
+(base) [duarte@node1 working_directory_h2]$ ls 
 genetic_data
-(base) [duartej3@lri-r10 working_directory_h2]$ # create a folder to store the programs that we need 
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir programs 
-(base) [duartej3@lri-r10 working_directory_h2]$ cd programs/
-(base) [duartej3@lri-r10 programs]$ # download plink2 and then plink1, unzip them and test that the executables are working
-(base) [duartej3@lri-r10 programs]$ wget https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260808.zip 
---2026-08-10 00:30:35--  https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260808.zip
+(base) [duarte@node1 working_directory_h2]$ # create a folder to store the programs that we need 
+(base) [duarte@node1 working_directory_h2]$ mkdir programs 
+(base) [duarte@node1 working_directory_h2]$ cd programs/
+(base) [duarte@node1 programs]$ # download plink2 and then plink1, unzip them and test that the executables are working
+(base) [duarte@node1 programs]$ wget https://s3.amazonaws.com/plink2-assets/alpha7/plink2_linux_x86_64_20260808.zip 
 Resolving s3.amazonaws.com (s3.amazonaws.com)... 52.216.56.240, 52.217.141.232, 52.217.192.120, ...
 Connecting to s3.amazonaws.com (s3.amazonaws.com)|52.216.56.240|:443... connected.
 HTTP request sent, awaiting response... 200 OK
@@ -277,18 +277,17 @@ Saving to: ‘plink2_linux_x86_64_20260808.zip’
 
 plink2_linux_x86_64_20260808.zip                                                      100%[========================================================================================================================================================================================================================>]   7.24M  46.7MB/s    in 0.2s    
 
-2026-08-10 00:30:35 (46.7 MB/s) - ‘plink2_linux_x86_64_20260808.zip’ saved [7593268/7593268]
+‘plink2_linux_x86_64_20260808.zip’ saved [7593268/7593268]
 
-(base) [duartej3@lri-r10 programs]$ unzip plink2_linux_x86_64_20260808.zip 
+(base) [duarte@node1 programs]$ unzip plink2_linux_x86_64_20260808.zip 
 Archive:  plink2_linux_x86_64_20260808.zip
   inflating: plink2                  
   inflating: vcf_subset              
   inflating: intel-simplified-software-license.txt  
-(base) [duartej3@lri-r10 programs]$ ./plink2 --version 
+(base) [duarte@node1 programs]$ ./plink2 --version 
 PLINK v2.0.0-a.7.3LM 64-bit Intel (8 Aug 2026)
-(base) [duartej3@lri-r10 programs]$ # plink2 is working, now download plink1 
-(base) [duartej3@lri-r10 programs]$ wget https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20250819.zip
---2026-08-10 00:31:15--  https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20250819.zip
+(base) [duarte@node1 programs]$ # plink2 is working, now download plink1 
+(base) [duarte@node1 programs]$ wget https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20250819.zip
 Resolving s3.amazonaws.com (s3.amazonaws.com)... 16.15.213.131, 16.15.253.242, 52.216.24.22, ...
 Connecting to s3.amazonaws.com (s3.amazonaws.com)|16.15.213.131|:443... connected.
 HTTP request sent, awaiting response... 200 OK
@@ -297,26 +296,26 @@ Saving to: ‘plink_linux_x86_64_20250819.zip’
 
 plink_linux_x86_64_20250819.zip                                                       100%[========================================================================================================================================================================================================================>]   6.03M  36.5MB/s    in 0.2s    
 
-2026-08-10 00:31:15 (36.5 MB/s) - ‘plink_linux_x86_64_20250819.zip’ saved [6321240/6321240]
+‘plink_linux_x86_64_20250819.zip’ saved [6321240/6321240]
 
-(base) [duartej3@lri-r10 programs]$ unzip plink_linux_x86_64_20250819.zip 
+(base) [duarte@node1 programs]$ unzip plink_linux_x86_64_20250819.zip 
 Archive:  plink_linux_x86_64_20250819.zip
   inflating: plink                   
   inflating: LICENSE                 
   inflating: toy.ped                 
   inflating: toy.map                 
   inflating: prettify                
-(base) [duartej3@lri-r10 programs]$ ./plink --version 
+(base) [duarte@node1 programs]$ ./plink --version 
 PLINK v1.9.0-b.7.11 64-bit (19 Aug 2025)
-(base) [duartej3@lri-r10 programs]$ #plink 1 is working as well. when calling them in different scripts, we will use this relative path so it doesn't interfere with your other possible versions 
-(base) [duartej3@lri-r10 programs]$ ls
+(base) [duarte@node1 programs]$ #plink 1 is working as well. when calling them in different scripts, we will use this relative path so it doesn't interfere with your other possible versions 
+(base) [duarte@node1 programs]$ ls
 intel-simplified-software-license.txt  LICENSE  plink  plink2  plink2_linux_x86_64_20260808.zip  plink_linux_x86_64_20250819.zip  prettify  toy.map  toy.ped  vcf_subset
-(base) [duartej3@lri-r10 programs]$ # now, lets create the folder of the genotyped genetic data
-(base) [duartej3@lri-r10 programs]$ cd ../genetic_data/
-(base) [duartej3@lri-r10 genetic_data]$ mkdir genotyped
-(base) [duartej3@lri-r10 genetic_data]$ ls
+(base) [duarte@node1 programs]$ # now, lets create the folder of the genotyped genetic data
+(base) [duarte@node1 programs]$ cd ../genetic_data/
+(base) [duarte@node1 genetic_data]$ mkdir genotyped
+(base) [duarte@node1 genetic_data]$ ls
 genotyped  imputed
-(base) [duartej3@lri-r10 genetic_data]$ cd genotyped/
+(base) [duarte@node1 genetic_data]$ cd genotyped/
 
 ```
 
@@ -377,13 +376,13 @@ For running it do:
 <summary>terminal example: saving the python script with nano and submitting the 22 jobs</summary>
 
 ```console
-(base) [duartej3@lri-r10 genotyped]$ # do a nano with the name of the script, hit enter, then ctrl + X, and then hit "y" to save it
-(base) [duartej3@lri-r10 genotyped]$ nano extract_genotyped_data.py
-(base) [duartej3@lri-r10 genotyped]$ nano extract_genotyped_data.py
-(base) [duartej3@lri-r10 genotyped]$ nano extract_genotyped_data.py #then the ctrl + X, then Y,
-(base) [duartej3@lri-r10 genotyped]$ ls 
+(base) [duarte@node1 genotyped]$ # do a nano with the name of the script, hit enter, then ctrl + X, and then hit "y" to save it
+(base) [duarte@node1 genotyped]$ nano extract_genotyped_data.py
+(base) [duarte@node1 genotyped]$ nano extract_genotyped_data.py
+(base) [duarte@node1 genotyped]$ nano extract_genotyped_data.py #then the ctrl + X, then Y,
+(base) [duarte@node1 genotyped]$ ls 
 extract_genotyped_data.py
-(base) [duartej3@lri-r10 genotyped]$ python extract_genotyped_data.py 
+(base) [duarte@node1 genotyped]$ python extract_genotyped_data.py 
 Submitted batch job 6109323
 Submitted batch job 6109324
 Submitted batch job 6109325
@@ -447,10 +446,10 @@ In the terminal do
 <summary>terminal example: saving and running the bash version</summary>
 
 ```console
-(base) [duartej3@lri-r10 genotyped]$ nano extract_genotyped_data.sh
-(base) [duartej3@lri-r10 genotyped]$ bash extract_genotyped_data.sh 
-(base) [duartej3@lri-r10 genotyped]$ # if it doesn't run, try to make sure it is an executable
-(base) [duartej3@lri-r10 genotyped]$ chmod +x extract_genotyped_data.sh #and then try again to bash it
+(base) [duarte@node1 genotyped]$ nano extract_genotyped_data.sh
+(base) [duarte@node1 genotyped]$ bash extract_genotyped_data.sh 
+(base) [duarte@node1 genotyped]$ # if it doesn't run, try to make sure it is an executable
+(base) [duarte@node1 genotyped]$ chmod +x extract_genotyped_data.sh #and then try again to bash it
 ```
 
 </details>
@@ -461,7 +460,7 @@ After running either of the two options, you will end up with one PLINK2 fileset
 <summary>terminal example: what the output directory looks like</summary>
 
 ```console
-(base) [duartej3@lri-r10 genotyped]$ ls chr*_typed.*
+(base) [duarte@node1 genotyped]$ ls chr*_typed.*
 chr10_typed.log   chr15_typed.psam  chr20_typed.log   chr4_typed.psam
 chr10_typed.pgen  chr15_typed.pvar  chr20_typed.pgen  chr4_typed.pvar
 chr10_typed.psam  chr16_typed.log   chr20_typed.psam  chr5_typed.log
@@ -544,9 +543,9 @@ In the terminal do
 <summary>terminal example: saving and running the merge script</summary>
 
 ```console
-(base) [duartej3@lri-r10 genotyped]$ nano merge_onlyTyped.sh
-(base) [duartej3@lri-r10 genotyped]$ bash merge_onlyTyped.sh 
-(base) [duartej3@lri-r10 genotyped]$ ls *all*
+(base) [duarte@node1 genotyped]$ nano merge_onlyTyped.sh
+(base) [duarte@node1 genotyped]$ bash merge_onlyTyped.sh 
+(base) [duarte@node1 genotyped]$ ls *all*
 allchr_typed.log allchr_typed.pgen allchr_typed.psam allchr_typed.pvar
 
 ```
@@ -573,12 +572,12 @@ Once you made sure that this is the shape of your covariate file, we can move on
 
 Here an example:
 ```
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir pca_and_such
-(base) [duartej3@lri-r10 working_directory_h2]$ cd pca_and_such/
-(base) [duartej3@lri-r10 pca_and_such]$ # copy your covariate file to this folder, or provide the absolute path to the next steps 
-(base) [duartej3@lri-r10 pca_and_such]$ # here I put my covariate file directly
-(base) [duartej3@lri-r10 pca_and_such]$ nano covar.txt
-(base) [duartej3@lri-r10 pca_and_such]$ ls covar.txt 
+(base) [duarte@node1 working_directory_h2]$ mkdir pca_and_such
+(base) [duarte@node1 working_directory_h2]$ cd pca_and_such/
+(base) [duarte@node1 pca_and_such]$ # copy your covariate file to this folder, or provide the absolute path to the next steps 
+(base) [duarte@node1 pca_and_such]$ # here I put my covariate file directly
+(base) [duarte@node1 pca_and_such]$ nano covar.txt
+(base) [duarte@node1 pca_and_such]$ ls covar.txt 
 covar.txt
 ```
 
@@ -592,7 +591,7 @@ Here we choose the R packages PC-Air and PC-Relate (available through GENESIS) t
 In order to compute the PCs with GENESIS we will need a specific conda environment, here an example (note, it will take a couple minutes to install)
 
 ```
-(base) [duartej3@lri-r10 working_directory_h2]$ conda create -n genesis \
+(base) [duarte@node1 working_directory_h2]$ conda create -n genesis \
   -c conda-forge -c bioconda \
   r-base=4.5 \
   r-data.table \
@@ -610,8 +609,8 @@ In order to compute the PCs with GENESIS we will need a specific conda environme
   -y
 
 #activate your environment
-(base) [duartej3@lri-r10 working_directory_h2]$ conda activate genesis
-(genesis) [duartej3@lri-r10 working_directory_h2]$ 
+(base) [duarte@node1 working_directory_h2]$ conda activate genesis
+(genesis) [duarte@node1 working_directory_h2]$ 
 
 
 ```
@@ -1314,14 +1313,14 @@ close(log_con)
 
 Here an example on how to run it
 ```
-(genesis) [duartej3@lri-r10 working_directory_h2]$ cd pca_and_such/
-(genesis) [duartej3@lri-r10 pca_and_such]$ pwd
-/home/duartej3/working_directory_h2/pca_and_such
-(genesis) [duartej3@lri-r10 pca_and_such]$ nano pcs_pipeline_h2_project.r 
-(genesis) [duartej3@lri-r10 pca_and_such]$ ls
+(genesis) [duarte@node1 working_directory_h2]$ cd pca_and_such/
+(genesis) [duarte@node1 pca_and_such]$ pwd
+/home/duarte/working_directory_h2/pca_and_such
+(genesis) [duarte@node1 pca_and_such]$ nano pcs_pipeline_h2_project.r 
+(genesis) [duarte@node1 pca_and_such]$ ls
 covar.txt  pcs_pipeline_h2_project.r
-(genesis) [duartej3@lri-r10 pca_and_such]$ # then run the script resolving to the relative paths of the project structure
-(genesis) [duartej3@lri-r10 pca_and_such]$ Rscript pcs_pipeline_h2_project.r \
+(genesis) [duarte@node1 pca_and_such]$ # then run the script resolving to the relative paths of the project structure
+(genesis) [duarte@node1 pca_and_such]$ Rscript pcs_pipeline_h2_project.r \
   --input_plink_file ../genetic_data/genotyped/allchr_typed \
   --input_format pfile \
   --covar_file covar.txt \
@@ -1336,9 +1335,9 @@ After the run is completed, get inside the output folder and inspect some of the
 
 The script will generate PCA plots and genome-wide correlations with each PCA across two rounds of PC-Air. This particular R package recommends two rounds of PC-Air, the first one using a GRM derived from KING's robust method and the second one using the GRM derived from PC-Relate (but since PC-Relate requires the input from PC-Air, that is why a first round of KING is performed), more details on how the logic flows can be found [here] (https://bioconductor.org/packages/devel/bioc/vignettes/GENESIS/inst/doc/pcair.html).
 
-For the purposes of this analysis, we mostly care about the results form the second round of PC-Air. So, it is highly advisable that you inspect the first 10 PCs visually and make sure that substantial genetic variation is captured across the axes of each PC, and inspect the genome-wide correlation plots to make sure that each PC has an overall even contribution across the genome. "Problematic PCs" could be the ones that are driven by specific regions of the genome or that potentially don't carry that much "variability" to split samples in your cohort. More details on how to interpret the genome-wide correlation plots could be found [here] (https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1011242). 
+For the purposes of this analysis, we mostly care about the results form the second round of PC-Air. So, it is highly advisable that you inspect the first 10 PCs visually and make sure that substantial genetic variation is captured across the axes of each PC, and inspect the genome-wide correlation plots to make sure that each PC has an overall even contribution across the genome. "Problematic PCs" could be the ones that are driven by specific regions of the genome or that potentially don't carry that much "variability" to split samples in your cohort. More details on how to interpret the genome-wide correlation plots could be found [here] (https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1011242). Don’t hesitate to reach out if you have questions about this.
 
-We will also appreciate if you could share the plots generated here with us so we can help to assess them as well. (Note, at the end of the tutorial a specific command looking for all the "shareables" to put them in a folder easy to share will be provided). 
+We will also appreciate if you could share the plots generated here with us so we can help to assess them as well. (Note, there is no need to collect them by hand: Step 13 at the end of the tutorial provides a single command that finds all the "shareables" across the whole project and puts them in one folder ready to zip and send). 
 
 
 ### Step 4.b remove related individuals 
@@ -1354,8 +1353,8 @@ In order to remove the least amount of samples as possible, we are going to use 
 Hence, now you can turn off your GENESIS package and run the tool:
 
 ```
-(genesis) [duartej3@lri-r10 outFolder_pca_andSuch]$ conda deactivate 
-(base) [duartej3@lri-r10 outFolder_pca_andSuch]$ git clone https://github.com/ldgh/NAToRA_Public
+(genesis) [duarte@node1 outFolder_pca_andSuch]$ conda deactivate 
+(base) [duarte@node1 outFolder_pca_andSuch]$ git clone https://github.com/ldgh/NAToRA_Public
 Cloning into 'NAToRA_Public'...
 remote: Enumerating objects: 135, done.
 remote: Counting objects: 100% (9/9), done.
@@ -1363,8 +1362,8 @@ remote: Compressing objects: 100% (7/7), done.
 remote: Total 135 (delta 3), reused 6 (delta 2), pack-reused 126 (from 1)
 Receiving objects: 100% (135/135), 126.52 MiB | 64.65 MiB/s, done.
 Resolving deltas: 100% (47/47), done.
-(base) [duartej3@lri-r10 outFolder_pca_andSuch]$ # then put to run the tool, sometimes it fails because you need to have installed networkx, you can solve it with pip install
-(base) [duartej3@lri-r10 outFolder_pca_andSuch]$ python NAToRA_Public/NAToRA_Public.py -i pcrelate_r1_kinship_pairs.tsv -o NAToRA_output_pcrel -c 0.0884
+(base) [duarte@node1 outFolder_pca_andSuch]$ # then put to run the tool, sometimes it fails because you need to have installed networkx, you can solve it with pip install
+(base) [duarte@node1 outFolder_pca_andSuch]$ python NAToRA_Public/NAToRA_Public.py -i pcrelate_r1_kinship_pairs.tsv -o NAToRA_output_pcrel -c 0.0884
 
 ```
 
@@ -1529,8 +1528,8 @@ say("=========================================================")
 Then hit run:
 
 ```
-(base) [duartej3@lri-r10 outFolder_pca_andSuch]$ nano make_covariate_files.r
-(base) [duartej3@lri-r10 outFolder_pca_andSuch]$ Rscript  make_covariate_files.r
+(base) [duarte@node1 outFolder_pca_andSuch]$ nano make_covariate_files.r
+(base) [duarte@node1 outFolder_pca_andSuch]$ Rscript  make_covariate_files.r
 ```
 
 
@@ -1547,9 +1546,9 @@ So lets go to our programs folder again:
 
 ```console
 cd programs/
-(base) [duartej3@lri-r10 programs]$ pwd
-/home/duartej3/working_directory_h2/programs
-(base) [duartej3@lri-r10 programs]$ git clone https://github.com/immunogenomics/cov-ldsc.git
+(base) [duarte@node1 programs]$ pwd
+/home/duarte/working_directory_h2/programs
+(base) [duarte@node1 programs]$ git clone https://github.com/immunogenomics/cov-ldsc.git
 Cloning into 'cov-ldsc'...
 remote: Enumerating objects: 1190, done.
 remote: Counting objects: 100% (78/78), done.
@@ -1558,10 +1557,10 @@ remote: Total 1190 (delta 24), reused 73 (delta 23), pack-reused 1112 (from 1)
 Receiving objects: 100% (1190/1190), 49.56 MiB | 55.77 MiB/s, done.
 Resolving deltas: 100% (491/491), done.
 Updating files: 100% (1088/1088), done.
-(base) [duartej3@lri-r10 programs]$ #then get the github for the classic ldsc and create the conda environment
-(base) [duartej3@lri-r10 programs]$ #the conda environments suits both, cov-ldsc to create the reference panel with the LD scores
-(base) [duartej3@lri-r10 programs]$ #and then to run the ldsc regression to calculate h2
-(base) [duartej3@lri-r10 programs]$ git clone https://github.com/bulik/ldsc.git
+(base) [duarte@node1 programs]$ #then get the github for the classic ldsc and create the conda environment
+(base) [duarte@node1 programs]$ #the conda environments suits both, cov-ldsc to create the reference panel with the LD scores
+(base) [duarte@node1 programs]$ #and then to run the ldsc regression to calculate h2
+(base) [duarte@node1 programs]$ git clone https://github.com/bulik/ldsc.git
 Cloning into 'ldsc'...
 remote: Enumerating objects: 7658, done.
 remote: Counting objects: 100% (310/310), done.
@@ -1570,14 +1569,14 @@ remote: Total 7658 (delta 286), reused 273 (delta 272), pack-reused 7348 (from 1
 Receiving objects: 100% (7658/7658), 56.44 MiB | 1.32 MiB/s, done.
 Resolving deltas: 100% (2724/2724), done.
 Updating files: 100% (1093/1093), done.
-(base) [duartej3@lri-r10 programs]$ ls
+(base) [duarte@node1 programs]$ ls
 cov-ldsc  intel-simplified-software-license.txt  ldsc  LICENSE  plink  plink2  plink2_linux_x86_64_20260808.zip  plink_linux_x86_64_20250819.zip  prettify  toy.map  toy.ped  vcf_subset
-(base) [duartej3@lri-r10 programs]$ cd ldsc/
-(base) [duartej3@lri-r10 ldsc]$ #create the conda environment with the requirements the authors of LDSC recommend 
-(base) [duartej3@lri-r10 ldsc]$ #creating the environment takes a couple minutes
-(base) [duartej3@lri-r10 ldsc]$ conda env create --file environment.yml
-(base) [duartej3@lri-r10 ldsc]$ conda activate ldsc 
-(ldsc) [duartej3@lri-r10 ldsc]$ python2 ldsc.py 
+(base) [duarte@node1 programs]$ cd ldsc/
+(base) [duarte@node1 ldsc]$ #create the conda environment with the requirements the authors of LDSC recommend 
+(base) [duarte@node1 ldsc]$ #creating the environment takes a couple minutes
+(base) [duarte@node1 ldsc]$ conda env create --file environment.yml
+(base) [duarte@node1 ldsc]$ conda activate ldsc 
+(ldsc) [duarte@node1 ldsc]$ python2 ldsc.py 
 *********************************************************************
 * LD Score Regression (LDSC)
 * Version 1.0.1
@@ -1588,7 +1587,6 @@ cov-ldsc  intel-simplified-software-license.txt  ldsc  LICENSE  plink  plink2  p
 Call: 
 ./ldsc.py \
 
-Beginning analysis at Tue Aug  4 09:05:03 2026
 *********************************************************************
 * LD Score Regression (LDSC)
 * Version 1.0.1
@@ -1601,11 +1599,10 @@ Call:
 
 Error: no analysis selected.
 ldsc.py -h describes options.
-Analysis finished at Tue Aug  4 09:05:03 2026
 Total time elapsed: 0.0s
 
-(ldsc) [duartej3@lri-r10 ldsc]$ #it worked! forget the error message since we are not running the tool itself right now, you can also try: python2 ldsc.py -h
-(ldsc) [duartej3@lri-r10 ldsc]$ #to check the flags available, just another way of showing that the conda environment and python versions are working appropriately.
+(ldsc) [duarte@node1 ldsc]$ #it worked! forget the error message since we are not running the tool itself right now, you can also try: python2 ldsc.py -h
+(ldsc) [duarte@node1 ldsc]$ #to check the flags available, just another way of showing that the conda environment and python versions are working appropriately.
 
 
 ```
@@ -1630,17 +1627,15 @@ Example of command line:
 <summary>terminal example:</summary>
 
 ```console
-(base) [duartej3@lri-r10 working_directory_h2]$ pwd
-/home/duartej3/working_directory_h2
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir reference_panel
-(base) [duartej3@lri-r10 working_directory_h2]$ cd reference_panel/
-(base) [duartej3@lri-r10 reference_panel]$ wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
---2026-08-10 04:48:07--  https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
+(base) [duarte@node1 working_directory_h2]$ pwd
+/home/duarte/working_directory_h2
+(base) [duarte@node1 working_directory_h2]$ mkdir reference_panel
+(base) [duarte@node1 working_directory_h2]$ cd reference_panel/
+(base) [duarte@node1 reference_panel]$ wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
 Resolving github.com (github.com)... 140.82.113.4
 Connecting to github.com (github.com)|140.82.113.4|:443... connected.
 HTTP request sent, awaiting response... 302 Found
 Location: https://raw.githubusercontent.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz [following]
---2026-08-10 04:48:07--  https://raw.githubusercontent.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/refs/heads/main/genetic_maps.b38_shapeit4.tar.gz
 Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.108.133, 185.199.109.133, 185.199.110.133, ...
 Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.108.133|:443... connected.
 HTTP request sent, awaiting response... 200 OK
@@ -1649,9 +1644,9 @@ Saving to: ‘genetic_maps.b38_shapeit4.tar.gz’
 
 genetic_maps.b38_shapeit4.tar.gz                                                100%[====================================================================================================================================================================================================>]  22.35M  --.-KB/s    in 0.1s    
 
-2026-08-10 04:48:08 (214 MB/s) - ‘genetic_maps.b38_shapeit4.tar.gz’ saved [23440558/23440558]
+‘genetic_maps.b38_shapeit4.tar.gz’ saved [23440558/23440558]
 
-(base) [duartej3@lri-r10 reference_panel]$ tar -xvf genetic_maps.b38_shapeit4.tar.gz
+(base) [duarte@node1 reference_panel]$ tar -xvf genetic_maps.b38_shapeit4.tar.gz
 chr10.b38.gmap.gz
 chr11.b38.gmap.gz
 chr12.b38.gmap.gz
@@ -1677,14 +1672,12 @@ chr9.b38.gmap.gz
 chrX.b38.gmap.gz
 chrX_par1.b38.gmap.gz
 chrX_par2.b38.gmap.gz
-(base) [duartej3@lri-r10 reference_panel]$ gunzip *
-(base) [duartej3@lri-r10 reference_panel]$ wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/hpm3snplist.bed
---2026-08-10 04:48:44--  https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/hpm3snplist.bed
+(base) [duarte@node1 reference_panel]$ gunzip *
+(base) [duarte@node1 reference_panel]$ wget https://github.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/raw/refs/heads/main/hpm3snplist.bed
 Resolving github.com (github.com)... 140.82.113.4
 Connecting to github.com (github.com)|140.82.113.4|:443... connected.
 HTTP request sent, awaiting response... 302 Found
 Location: https://raw.githubusercontent.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/refs/heads/main/hpm3snplist.bed [following]
---2026-08-10 04:48:45--  https://raw.githubusercontent.com/Jduarte-z/NarrowSense_h2_in_URPs_GP2/refs/heads/main/hpm3snplist.bed
 Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.110.133, 185.199.111.133, ...
 Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... connected.
 HTTP request sent, awaiting response... 200 OK
@@ -1693,9 +1686,9 @@ Saving to: ‘hpm3snplist.bed’
 
 hpm3snplist.bed                                                                 100%[====================================================================================================================================================================================================>]  24.04M  --.-KB/s    in 0.1s    
 
-2026-08-10 04:48:46 (166 MB/s) - ‘hpm3snplist.bed’ saved [25204459/25204459]
+‘hpm3snplist.bed’ saved [25204459/25204459]
 
-(base) [duartej3@lri-r10 reference_panel]$ ls
+(base) [duarte@node1 reference_panel]$ ls
 chr10.b38.gmap  chr12.b38.gmap  chr14.b38.gmap  chr16.b38.gmap  chr18.b38.gmap  chr1.b38.gmap   chr21.b38.gmap  chr2.b38.gmap  chr4.b38.gmap  chr6.b38.gmap  chr8.b38.gmap  chrX.b38.gmap       chrX_par2.b38.gmap             hpm3snplist.bed
 chr11.b38.gmap  chr13.b38.gmap  chr15.b38.gmap  chr17.b38.gmap  chr19.b38.gmap  chr20.b38.gmap  chr22.b38.gmap  chr3.b38.gmap  chr5.b38.gmap  chr7.b38.gmap  chr9.b38.gmap  chrX_par1.b38.gmap  genetic_maps.b38_shapeit4.tar
 
@@ -1859,11 +1852,11 @@ For running it do:
 <summary>terminal example: saving the python script with nano and submitting the 22 jobs</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ pwd
-/home/duartej3/working_directory_h2/reference_panel
-(base) [duartej3@lri-r10 reference_panel]$ # do a nano with the name of the script, hit enter, then ctrl + X, and then hit "y" to save it
-(base) [duartej3@lri-r10 reference_panel]$ nano refPanel_covLDscores.py
-(base) [duartej3@lri-r10 reference_panel]$ python refPanel_covLDscores.py
+(base) [duarte@node1 reference_panel]$ pwd
+/home/duarte/working_directory_h2/reference_panel
+(base) [duarte@node1 reference_panel]$ # do a nano with the name of the script, hit enter, then ctrl + X, and then hit "y" to save it
+(base) [duarte@node1 reference_panel]$ nano refPanel_covLDscores.py
+(base) [duarte@node1 reference_panel]$ python refPanel_covLDscores.py
 Submitted batch job 6112401
 Submitted batch job 6112402
 Submitted batch job 6112403
@@ -2013,11 +2006,11 @@ In the terminal do
 <summary>terminal example: saving and running the bash version</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ nano refPanel_covLDscores.sh
-(base) [duartej3@lri-r10 reference_panel]$ bash refPanel_covLDscores.sh
+(base) [duarte@node1 reference_panel]$ nano refPanel_covLDscores.sh
+(base) [duarte@node1 reference_panel]$ bash refPanel_covLDscores.sh
 =================== chr1 ===================
-(base) [duartej3@lri-r10 reference_panel]$ # if it doesn't run, try to make sure it is an executable
-(base) [duartej3@lri-r10 reference_panel]$ chmod +x refPanel_covLDscores.sh #and then try again to bash it
+(base) [duarte@node1 reference_panel]$ # if it doesn't run, try to make sure it is an executable
+(base) [duarte@node1 reference_panel]$ chmod +x refPanel_covLDscores.sh #and then try again to bash it
 ```
 
 </details>
@@ -2028,25 +2021,25 @@ After running either of the two options, you will end up with one folder per chr
 <summary>terminal example: what the reference_panel directory looks like</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ ls
+(base) [duarte@node1 reference_panel]$ ls
 chr1   chr12  chr15  chr18  chr20  chr4  chr7  chr1.b38.gmap   chr12.b38.gmap  chr15.b38.gmap  chr18.b38.gmap  chr20.b38.gmap  chr4.b38.gmap  chr7.b38.gmap  hpm3snplist.bed
 chr10  chr13  chr16  chr19  chr21  chr5  chr8  chr10.b38.gmap  chr13.b38.gmap  chr16.b38.gmap  chr19.b38.gmap  chr21.b38.gmap  chr5.b38.gmap  chr8.b38.gmap  refPanel_covLDscores.py
 chr11  chr14  chr17  chr2   chr22  chr6  chr9  chr11.b38.gmap  chr14.b38.gmap  chr17.b38.gmap  chr2.b38.gmap   chr22.b38.gmap  chr6.b38.gmap  chr9.b38.gmap  genetic_maps.b38_shapeit4.tar
 chr3                                                           chr3.b38.gmap
 
-(base) [duartej3@lri-r10 reference_panel]$ # a closer look at one chromosome
-(base) [duartej3@lri-r10 reference_panel]$ ls chr22/
+(base) [duarte@node1 reference_panel]$ # a closer look at one chromosome
+(base) [duarte@node1 reference_panel]$ ls chr22/
 chr22.plink1.extracted.bed             chr22.plink1.extracted_cmUpdated.bed   chr22.step1.log        genotyped_bed_varList.txt
 chr22.plink1.extracted.bim             chr22.plink1.extracted_cmUpdated.bim   chr22.step1.rmdup.list  logs
 chr22.plink1.extracted.fam             chr22.plink1.extracted_cmUpdated.fam   chr22.step1.snplist     out
 chr22.plink1.extracted.log             chr22.plink1.extracted_cmUpdated.log   combined_bed_varList.txt
 chr22.plink1.extracted.rmdup.list                                             wellImputed_bed_varList.txt
 
-(base) [duartej3@lri-r10 reference_panel]$ # and the LD scores themselves
-(base) [duartej3@lri-r10 reference_panel]$ ls chr22/out/
+(base) [duarte@node1 reference_panel]$ # and the LD scores themselves
+(base) [duarte@node1 reference_panel]$ ls chr22/out/
 covldsc_chr22.l2.ldscore.gz  covldsc_chr22.l2.M  covldsc_chr22.l2.M_5_50  covldsc_chr22.log
 
-(base) [duartej3@lri-r10 reference_panel]$ zcat chr22/out/covldsc_chr22.l2.ldscore.gz | head -3
+(base) [duarte@node1 reference_panel]$ zcat chr22/out/covldsc_chr22.l2.ldscore.gz | head -3
 CHR	SNP	BP	L2
 22	22:16392862:G:T	16392862	19.482
 22	22:16393163:T:C	16393163	19.563
@@ -2060,10 +2053,10 @@ Two quick sanity checks before moving on. First, confirm that all 22 chromosomes
 <summary>terminal example: checking that the 22 chromosomes finished</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ ls chr*/out/*.l2.ldscore.gz | wc -l
+(base) [duarte@node1 reference_panel]$ ls chr*/out/*.l2.ldscore.gz | wc -l
 22
-(base) [duartej3@lri-r10 reference_panel]$ # total number of variants in the reference panel
-(base) [duartej3@lri-r10 reference_panel]$ cat chr*/chr*.plink1.extracted_cmUpdated.bim | wc -l
+(base) [duarte@node1 reference_panel]$ # total number of variants in the reference panel
+(base) [duarte@node1 reference_panel]$ cat chr*/chr*.plink1.extracted_cmUpdated.bim | wc -l
 8102072
 ```
 
@@ -2088,12 +2081,12 @@ Let us create a folder for this step, at the same level as `reference_panel`:
 <summary>terminal example: creating the gwas folder</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ cd ..
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir gwas
-(base) [duartej3@lri-r10 working_directory_h2]$ cd gwas/
-(base) [duartej3@lri-r10 gwas]$ pwd
-/home/duartej3/working_directory_h2/gwas
-(base) [duartej3@lri-r10 working_directory_h2]$ ls ..
+(base) [duarte@node1 reference_panel]$ cd ..
+(base) [duarte@node1 working_directory_h2]$ mkdir gwas
+(base) [duarte@node1 working_directory_h2]$ cd gwas/
+(base) [duarte@node1 gwas]$ pwd
+/home/duarte/working_directory_h2/gwas
+(base) [duarte@node1 working_directory_h2]$ ls ..
 genetic_data  gwas  pca_and_such  programs  reference_panel
 ```
 
@@ -2180,8 +2173,8 @@ For running it do:
 <summary>terminal example: saving the python script with nano and submitting the 22 jobs</summary>
 
 ```console
-(base) [duartej3@lri-r10 gwas]$ nano plinkGWAS.py
-(base) [duartej3@lri-r10 gwas]$ python plinkGWAS.py
+(base) [duarte@node1 gwas]$ nano plinkGWAS.py
+(base) [duarte@node1 gwas]$ python plinkGWAS.py
 Submitted batch job 6114512
 Submitted batch job 6114513
 Submitted batch job 6114514
@@ -2283,11 +2276,11 @@ In the terminal do
 <summary>terminal example: saving and running the bash version</summary>
 
 ```console
-(base) [duartej3@lri-r10 gwas]$ nano plinkGWAS.sh
-(base) [duartej3@lri-r10 gwas]$ bash plinkGWAS.sh
+(base) [duarte@node1 gwas]$ nano plinkGWAS.sh
+(base) [duarte@node1 gwas]$ bash plinkGWAS.sh
 =================== chr1 ===================
-(base) [duartej3@lri-r10 gwas]$ # if it doesn't run, try to make sure it is an executable
-(base) [duartej3@lri-r10 gwas]$ chmod +x plinkGWAS.sh #and then try again to bash it
+(base) [duarte@node1 gwas]$ # if it doesn't run, try to make sure it is an executable
+(base) [duarte@node1 gwas]$ chmod +x plinkGWAS.sh #and then try again to bash it
 ```
 
 </details>
@@ -2300,7 +2293,7 @@ Note: something to consider here is that we are using plink1 files to run the re
 <summary>terminal example: what the GWAS output looks like</summary>
 
 ```console
-(base) [duartej3@lri-r10 gwas]$ ls out/ | head -6
+(base) [duarte@node1 gwas]$ ls out/ | head -6
 plinkGWAS_chr10.result.DISEASE.glm.logistic.hybrid
 plinkGWAS_chr10.result.log
 plinkGWAS_chr11.result.DISEASE.glm.logistic.hybrid
@@ -2308,11 +2301,11 @@ plinkGWAS_chr11.result.log
 plinkGWAS_chr12.result.DISEASE.glm.logistic.hybrid
 plinkGWAS_chr12.result.log
 
-(base) [duartej3@lri-r10 gwas]$ # sanity check: 22 association files
-(base) [duartej3@lri-r10 gwas]$ ls out/*.glm.logistic.hybrid | wc -l
+(base) [duarte@node1 gwas]$ # sanity check: 22 association files
+(base) [duarte@node1 gwas]$ ls out/*.glm.logistic.hybrid | wc -l
 22
 
-(base) [duartej3@lri-r10 gwas]$ head -3 out/plinkGWAS_chr22.result.DISEASE.glm.logistic.hybrid
+(base) [duarte@node1 gwas]$ head -3 out/plinkGWAS_chr22.result.DISEASE.glm.logistic.hybrid
 #CHROM	POS	ID	REF	ALT	A1	OMITTED	A1_FREQ	FIRTH?	TEST	OBS_CT	OR	LOG(OR)_SE	Z_STAT	P	ERRCODE
 22	10516675	chr22:10516675:G:A	G	A	A	G	0.231447	N	ADD	6412	1.02214	0.0487731	0.449276	0.653259	.
 22	10516726	chr22:10516726:C:T	C	T	T	C	0.190228	N	ADD	6412	0.981135	0.0521884	-0.365184	0.714993	.
@@ -2332,10 +2325,10 @@ GWASLab is python3, whereas LDSC is python2, so it needs its own conda environme
 <summary>terminal example: creating the gwaslab environment</summary>
 
 ```console
-(base) [duartej3@lri-r10 gwas]$ conda create -n gwaslab -c conda-forge python=3.10 -y
-(base) [duartej3@lri-r10 gwas]$ conda activate gwaslab
-(gwaslab) [duartej3@lri-r10 gwas]$ # we pin the version so that everybody in the project parses the sumstats identically
-(gwaslab) [duartej3@lri-r10 gwas]$ pip install gwaslab==4.1.6
+(base) [duarte@node1 gwas]$ conda create -n gwaslab -c conda-forge python=3.10 -y
+(base) [duarte@node1 gwas]$ conda activate gwaslab
+(gwaslab) [duarte@node1 gwas]$ # we pin the version so that everybody in the project parses the sumstats identically
+(gwaslab) [duarte@node1 gwas]$ pip install gwaslab==4.1.6
 
 ```
 
@@ -2432,12 +2425,12 @@ And to run it:
 <summary>terminal example: running the parser and checking the output</summary>
 
 ```console
-(gwaslab) [duartej3@lri-r10 gwas]$ nano parse_plink_gwas.py
-(gwaslab) [duartej3@lri-r10 gwas]$ python parse_plink_gwas.py
-(gwaslab) [duartej3@lri-r10 gwas]$ ls out/gwaslab_output/
+(gwaslab) [duarte@node1 gwas]$ nano parse_plink_gwas.py
+(gwaslab) [duarte@node1 gwas]$ python parse_plink_gwas.py
+(gwaslab) [duarte@node1 gwas]$ ls out/gwaslab_output/
 gwas_sumstats_allchr.ldsc.tsv.gz  gwas_sumstats_allchr.log  gwas_sumstats_allchr.png
 
-(gwaslab) [duartej3@lri-r10 gwas]$ zcat out/gwaslab_output/gwas_sumstats_allchr.ldsc.tsv.gz | head -3
+(gwaslab) [duarte@node1 gwas]$ zcat out/gwaslab_output/gwas_sumstats_allchr.ldsc.tsv.gz | head -3
 SNP	A1	A2	N	Z
 chr1:11063:T:G	G	T	6412	0.4128
 chr1:13259:G:A	A	G	6412	-1.2074
@@ -2473,13 +2466,13 @@ Two prevalences go into the liability-scale transformation:
 <summary>terminal example: creating the folder and reading off the sample prevalence</summary>
 
 ```console
-(base) [duartej3@lri-r10 gwas]$ cd ..
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir covldsc_h2
-(base) [duartej3@lri-r10 working_directory_h2]$ cd covldsc_h2/
-(base) [duartej3@lri-r10 covldsc_h2]$ pwd
-/home/duartej3/working_directory_h2/covldsc_h2
-(base) [duartej3@lri-r10 covldsc_h2]$ # the sample prevalence was already computed for you in step 4.c
-(base) [duartej3@lri-r10 covldsc_h2]$ grep -A6 "Summary" ../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.log
+(base) [duarte@node1 gwas]$ cd ..
+(base) [duarte@node1 working_directory_h2]$ mkdir covldsc_h2
+(base) [duarte@node1 working_directory_h2]$ cd covldsc_h2/
+(base) [duarte@node1 covldsc_h2]$ pwd
+/home/duarte/working_directory_h2/covldsc_h2
+(base) [duarte@node1 covldsc_h2]$ # the sample prevalence was already computed for you in step 4.c
+(base) [duarte@node1 covldsc_h2]$ grep -A6 "Summary" ../pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.log
 --- Summary ---------------------------------------------
 Covariate file          : ./pcair_r2_covariates_merged.tsv
 Removal list            : ./NAToRA_output_pcrel_toRemove.txt (689 unique IDs)
@@ -2580,15 +2573,15 @@ In the terminal do
 <summary>terminal example: saving and running the regression</summary>
 
 ```console
-(base) [duartej3@lri-r10 covldsc_h2]$ nano run_covldsc_h2.sh
-(base) [duartej3@lri-r10 covldsc_h2]$ bash run_covldsc_h2.sh
+(base) [duarte@node1 covldsc_h2]$ nano run_covldsc_h2.sh
+(base) [duarte@node1 covldsc_h2]$ bash run_covldsc_h2.sh
 sample prevalence read from step 4.c : 0.590768
 =================== population prevalence K = 0.005 ===================
 =================== population prevalence K = 0.01 ===================
 =================== population prevalence K = 0.02 ===================
 done. The estimates are in ./logs/cov_ldsc_popPrev_*.log
-(base) [duartej3@lri-r10 covldsc_h2]$ # if it doesn't run, try to make sure it is an executable
-(base) [duartej3@lri-r10 covldsc_h2]$ chmod +x run_covldsc_h2.sh #and then try again to bash it
+(base) [duarte@node1 covldsc_h2]$ # if it doesn't run, try to make sure it is an executable
+(base) [duarte@node1 covldsc_h2]$ chmod +x run_covldsc_h2.sh #and then try again to bash it
 ```
 
 </details>
@@ -2601,7 +2594,7 @@ LDSC writes its results into the `.log` file rather than a table, so this is whe
 <summary>terminal example: the LDSC log for the primary prevalence</summary>
 
 ```console
-(base) [duartej3@lri-r10 covldsc_h2]$ cat logs/cov_ldsc_popPrev_0.005.log
+(base) [duarte@node1 covldsc_h2]$ cat logs/cov_ldsc_popPrev_0.005.log
 *********************************************************************
 * LD Score Regression (LDSC)
 * Version 1.0.1
@@ -2615,7 +2608,6 @@ Call:
 --w-ld-chr ../reference_panel/chr@/out/covldsc_chr@ \
 --pop-prev 0.005
 
-Beginning analysis at Mon Aug 10 06:14:22 2026
 Reading summary statistics from ../gwas/out/gwaslab_output/gwas_sumstats_allchr.ldsc.tsv.gz ...
 Read summary statistics for 8087341 SNPs.
 Reading reference panel LD Score from ../reference_panel/chr@/out/covldsc_chr@ ... (ldscore_fromlist)
@@ -2631,7 +2623,6 @@ Mean Chi^2: 1.0431
 Intercept: 0.9982 (0.0079)
 Ratio < 0 (usually indicates GC correction).
 Total Liability scale h2: 0.2416 (0.0327)
-Analysis finished at Mon Aug 10 06:14:58 2026
 Total time elapsed: 36.0s
 ```
 
@@ -2643,7 +2634,7 @@ And to put the three runs side by side:
 <summary>terminal example: collecting the three estimates into one table</summary>
 
 ```console
-(base) [duartej3@lri-r10 covldsc_h2]$ for k in 0.005 0.01 0.02; do
+(base) [duarte@node1 covldsc_h2]$ for k in 0.005 0.01 0.02; do
 >   printf "K=%-6s %s\n" "${k}" "$(grep 'Total Liability scale h2' logs/cov_ldsc_popPrev_${k}.log)"
 > done
 K=0.005  Total Liability scale h2: 0.2416 (0.0327)
@@ -2665,7 +2656,7 @@ Four numbers in that log deserve your attention:
 Finally, please share all three `.log` files with us. Together with the diagnostics from Steps 4 and 6, they are what lets us tell apart a genuinely low heritability from an underpowered GWAS.
 
 
-# Second analysis: GRM based estimates 
+# Second wave of analysis: GRM based estimates 
 
 With the summary-statistic and LD scores arm behind us, we now move to arms 2 to 5 of the design table in section 4, the ones that estimate heritability from a Genomic Relatedness Matrix. This part of the tutorial covers **arm 2: GREML on a standard GCTA GRM**, which is one of the classical field's reference implementation and serves as a complementary source to validate LDSC estimates. 
 
@@ -2676,9 +2667,9 @@ Two things are worth stating before we start:
 
 One consequence of the first point is worth anticipating: the GRM is computed over the full reference panel variant set, imputed variants included, which is a lot more variants than a genotyped-only GRM would use. That is deliberate, but it does make this the second most computationally demanding step of the tutorial after Step 5.b.
 
-## Step 1. download GCTA and compute a classic GRM
+## Step 8. download GCTA and compute a classic GRM
 
-### Step 1.a get the program
+### Step 8.a get the program
 
 As with plink, we keep the executable inside `./programs` so it does not interfere with any GCTA you may already have installed.
 
@@ -2686,10 +2677,10 @@ As with plink, we keep the executable inside `./programs` so it does not interfe
 <summary>terminal example: downloading GCTA and checking the executable</summary>
 
 ```console
-(base) [duartej3@lri-r10 working_directory_h2]$ cd programs/
-(base) [duartej3@lri-r10 programs]$ wget https://yanglab.westlake.edu.cn/software/gcta/bin/gcta-1.95.3-linux-x86_64.zip 
-(base) [duartej3@lri-r10 programs]$ unzip gcta-1.95.3-linux-x86_64.zip 
-(base) [duartej3@lri-r10 programs]$ ./gcta-1.95.3-linux-x86_64/gcta 
+(base) [duarte@node1 working_directory_h2]$ cd programs/
+(base) [duarte@node1 programs]$ wget https://yanglab.westlake.edu.cn/software/gcta/bin/gcta-1.95.3-linux-x86_64.zip 
+(base) [duarte@node1 programs]$ unzip gcta-1.95.3-linux-x86_64.zip 
+(base) [duarte@node1 programs]$ ./gcta-1.95.3-linux-x86_64/gcta 
 *******************************************************************
 * Genome-wide Complex Trait Analysis (GCTA)
 * version v1.95.3 Linux
@@ -2697,8 +2688,7 @@ As with plink, we keep the executable inside `./programs` so it does not interfe
 * (C) 2010-present, Yang Lab, Westlake University
 * Please report bugs to Jian Yang <jian.yang@westlake.edu.cn>
 *******************************************************************
-Analysis started at 16:07:23 EDT on Wed Aug 05 2026.
-Hostname: lri-r04.lerner.ccf.org
+Hostname: r01-ccf.org
 
 Error: no analysis has been launched by the option(s)
 Please see online documentation at https://yanglab.westlake.edu.cn/software/gcta/
@@ -2708,24 +2698,24 @@ Please see online documentation at https://yanglab.westlake.edu.cn/software/gcta
 
 Same story as with LDSC back in Step 5.a: the error message just means we launched GCTA without asking it to do anything, which is exactly the check we wanted. The executable works.
 
-### Step 1.b create the folder for this analysis
+### Step 8.b create the folder for this analysis
 
 <details>
 <summary>terminal example: creating the greml folder</summary>
 
 ```console
-(base) [duartej3@lri-r10 programs]$ cd ..
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir greml
-(base) [duartej3@lri-r10 working_directory_h2]$ cd greml/
-(base) [duartej3@lri-r10 greml]$ pwd
-/home/duartej3/working_directory_h2/greml
-(base) [duartej3@lri-r10 greml]$ ls ..
+(base) [duarte@node1 programs]$ cd ..
+(base) [duarte@node1 working_directory_h2]$ mkdir greml
+(base) [duarte@node1 working_directory_h2]$ cd greml/
+(base) [duarte@node1 greml]$ pwd
+/home/duarte/working_directory_h2/greml
+(base) [duarte@node1 greml]$ ls ..
 covldsc_h2  genetic_data  greml  gwas  pca_and_such  programs  reference_panel
 ```
 
 </details>
 
-### Step 1.c compute one GRM per chromosome
+### Step 8.c compute one GRM per chromosome
 
 A genome-wide GRM could in principle be built in a single GCTA call, but on a cohort of this size that means holding the whole variant set in memory at once, and we will do it only when it is necesary (see GRM with PC-Relate below). It is both faster and far more forgiving to build one GRM per chromosome and merge them afterwards, which is what GCTA's `--mgrm` is designed for. Splitting also means that a chromosome that runs out of memory can be rerun on its own instead of restarting everything.
 
@@ -2828,8 +2818,8 @@ For running it do:
 <summary>terminal example: saving the python script with nano and submitting the 22 jobs</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml]$ nano make_grms_per_chr.py
-(base) [duartej3@lri-r10 greml]$ python make_grms_per_chr.py
+(base) [duarte@node1 greml]$ nano make_grms_per_chr.py
+(base) [duarte@node1 greml]$ python make_grms_per_chr.py
 Submitted batch job 6116740
 Submitted batch job 6116741
 Submitted batch job 6116742
@@ -2927,8 +2917,8 @@ In the terminal do
 <summary>terminal example: saving and running the bash version</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml]$ nano make_grms_per_chr.sh
-(base) [duartej3@lri-r10 greml]$ bash make_grms_per_chr.sh
+(base) [duarte@node1 greml]$ nano make_grms_per_chr.sh
+(base) [duarte@node1 greml]$ bash make_grms_per_chr.sh
 ```
 
 </details>
@@ -2939,11 +2929,11 @@ Either way you end up with one folder per chromosome, each holding a GRM in GCTA
 <summary>terminal example: what the greml directory looks like</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml]$ ls
+(base) [duarte@node1 greml]$ ls
 chr1   chr11  chr13  chr15  chr17  chr19  chr20  chr22  chr4  chr6  chr8  make_grms_per_chr.py
 chr10  chr12  chr14  chr16  chr18  chr2   chr21  chr3   chr5  chr7  chr9  make_grms_per_chr.sh
-(base) [duartej3@lri-r10 greml]$ # sanity check: 22 GRMs, and all of them with the same people
-(base) [duartej3@lri-r10 greml]$ ls chr*/out/*.grm.bin | wc -l
+(base) [duarte@node1 greml]$ # sanity check: 22 GRMs, and all of them with the same people
+(base) [duarte@node1 greml]$ ls chr*/out/*.grm.bin | wc -l
 22
 ```
 
@@ -2951,7 +2941,7 @@ chr10  chr12  chr14  chr16  chr18  chr2   chr21  chr3   chr5  chr7  chr9  make_g
 
 The three files are the GRM itself (`.grm.bin`, the lower triangle of the matrix in binary), the number of variants used for each pair (`.grm.N.bin`), and the sample IDs in matrix order (`.grm.id`). All three are needed, and the merge in the next step will refuse to run unless the `.grm.id` files agree across all 22 chromosomes.
 
-## Step 2. merge the 22 GRMs and run GREML across the prevalence grid
+## Step 9. merge the 22 GRMs and run GREML across the prevalence grid
 
 Now we hand the 22 chromosome GRMs to GCTA so it can add them into a single genome-wide GRM, and then fit the REML model on it. As in Step 7, the model itself is fit once on the observed scale, and only the liability-scale transformation changes across the prevalence grid — so the three `K` values are cheap.
 
@@ -2992,7 +2982,7 @@ WORKDIR="${WORKDIR:-${SCRIPT_DIR}}"
 
 THREADS="${THREADS:-4}"
 
-# The GCTA executable downloaded in step 1.a, kept in ./programs like plink
+# The GCTA executable downloaded in step 8.a, kept in ./programs like plink
 GCTA="${GCTA:-${WORKDIR}/../programs/gcta-1.95.3-linux-x86_64/gcta}"
 
 # Directory holding the per-chromosome GRMs written by
@@ -3259,27 +3249,26 @@ In the terminal do
 <summary>terminal example: saving and running the merge plus GREML script</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml]$ nano merge_grms_runGREML.sh
-(base) [duartej3@lri-r10 greml]$ bash merge_grms_runGREML.sh
+(base) [duarte@node1 greml]$ nano merge_grms_runGREML.sh
+(base) [duarte@node1 greml]$ bash merge_grms_runGREML.sh
 ==============================================================
-Script      : /home/duartej3/working_directory_h2/greml/merge_grms_runGREML.sh
-Started     : Mon Aug 8 09:14:02 EDT 2026
-Host        : lri-r10.lerner.ccf.org
-Working dir : /home/duartej3/working_directory_h2/greml
-GRM dir     : /home/duartej3/working_directory_h2/greml
-Output root : /home/duartej3/working_directory_h2/greml/gcta_singleGRM
+Script      : /home/duarte/working_directory_h2/greml/merge_grms_runGREML.sh
+Host        : node1.lerner.ccf.org
+Working dir : /home/duarte/working_directory_h2/greml
+GRM dir     : /home/duarte/working_directory_h2/greml
+Output root : /home/duarte/working_directory_h2/greml/gcta_singleGRM
 Threads     : 4
-Log file    : /home/duartej3/working_directory_h2/greml/gcta_singleGRM/logs/merge_GREML.log
+Log file    : /home/duarte/working_directory_h2/greml/gcta_singleGRM/logs/merge_GREML.log
 ==============================================================
 
 Chromosome GRMs:
-/home/duartej3/working_directory_h2/greml/chr1/out/chr1
-/home/duartej3/working_directory_h2/greml/chr2/out/chr2
+/home/duarte/working_directory_h2/greml/chr1/out/chr1
+/home/duarte/working_directory_h2/greml/chr2/out/chr2
 ...
-/home/duartej3/working_directory_h2/greml/chr22/out/chr22
+/home/duarte/working_directory_h2/greml/chr22/out/chr22
 
 Number of samples per chromosome GRM:
-6412 /home/duartej3/working_directory_h2/greml/chr1/out/chr1.grm.id
+6412 /home/duarte/working_directory_h2/greml/chr1/out/chr1.grm.id
 
 ########## Merging chromosome GRMs ##########
 Merged GRM contains:
@@ -3303,15 +3292,15 @@ Two things are worth noticing when you compare this with the cov-LDSC result fro
 
 As before, please share the three `.hsq` files and the summary table with us.
 
-## Step 3. build the ancestry-aware GRM with PC-Relate
+## Step 10. build the ancestry-aware GRM with PC-Relate
 
 This is **arm 3** of the design table: the same estimator, the same samples, the same variants and the same covariates as arm 2, with exactly one thing changed, namely how the GRM is built. That is the whole point of running both.
 
 Recall the argument from there: a standard GCTA GRM compares every individual against a single cohort-wide allele frequency. In an admixed cohort that reference describes nobody, and two unrelated people who happen to share a high proportion of the same ancestry will look genetically similar for reasons that have nothing to do with recent genealogy. PC-Relate instead estimates **individual-specific allele frequencies** from the principal components (comming from PC-Air), and measures each pair's similarity against their own expected frequencies. The ancestry component is removed rather than absorbed.
 
-There is one practical difference from arm 2 that shapes this step. GCTA lets us build 22 chromosome GRMs and add them together afterwards with `--mgrm`. PC-Relate has no such option: it estimates individual-specific allele frequencies across the whole genome at once, so it needs a single genome-wide fileset. Hence Step 3.a.
+There is one practical difference from arm 2 that shapes this step. GCTA lets us build 22 chromosome GRMs and add them together afterwards with `--mgrm`. PC-Relate has no such option: it estimates individual-specific allele frequencies across the whole genome at once, so it needs a single genome-wide fileset. Hence Step 10.a.
 
-### Step 3.a merge the 22 reference panel filesets into one
+### Step 10.a merge the 22 reference panel filesets into one
 
 We merge the same per-chromosome `bed/bim/fam` filesets from Step 5.b that fed the GWAS and the GCTA GRMs. Because the 22 filesets cover disjoint chromosomes and contain identical samples, this is a straight concatenation. 
 
@@ -3382,26 +3371,26 @@ In the terminal do
 <summary>terminal example: saving and running the merge</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml]$ cd ../reference_panel/
-(base) [duartej3@lri-r10 reference_panel]$ nano merge_reference_panel.sh
-(base) [duartej3@lri-r10 reference_panel]$ bash merge_reference_panel.sh
+(base) [duarte@node1 greml]$ cd ../reference_panel/
+(base) [duarte@node1 reference_panel]$ nano merge_reference_panel.sh
+(base) [duarte@node1 reference_panel]$ bash merge_reference_panel.sh
 === merging chr1-22 into merged_chr1_22 ===
 === merged fileset: merged_chr1_22.bed / .bim / .fam ===
 variants: 8102072
 samples:  6412
 done
-(base) [duartej3@lri-r10 reference_panel]$ ls -lh merged_chr1_22.*
--rw-r--r-- 1 duartej3 users  13G Aug 10 10:22 merged_chr1_22.bed
--rw-r--r-- 1 duartej3 users 289M Aug 10 10:22 merged_chr1_22.bim
--rw-r--r-- 1 duartej3 users 162K Aug 10 10:22 merged_chr1_22.fam
--rw-r--r-- 1 duartej3 users 3.1K Aug 10 10:22 merged_chr1_22.log
+(base) [duarte@node1 reference_panel]$ du -h merged_chr1_22.*
+13G	merged_chr1_22.bed
+289M	merged_chr1_22.bim
+162K	merged_chr1_22.fam
+3.1K	merged_chr1_22.log
 ```
 
 </details>
 
 Check that the variant count matches the total you got at the end of Step 5.b. If it is lower, a chromosome silently failed to merge and the `.log` will say which.
 
-### Step 3.b compute the PC-Relate GRM
+### Step 10.b compute the PC-Relate GRM
 
 This step goes back to the `genesis` conda environment we created in Step 4, since PC-Relate lives in the same GENESIS package that gave us PC-AiR.
 
@@ -3409,12 +3398,12 @@ This step goes back to the `genesis` conda environment we created in Step 4, sin
 <summary>terminal example: creating the folder and activating the environment</summary>
 
 ```console
-(base) [duartej3@lri-r10 reference_panel]$ cd ..
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir greml_pcrelate
-(base) [duartej3@lri-r10 working_directory_h2]$ cd greml_pcrelate/
-(base) [duartej3@lri-r10 greml_pcrelate]$ conda activate genesis
-(genesis) [duartej3@lri-r10 greml_pcrelate]$ pwd
-/home/duartej3/working_directory_h2/greml_pcrelate
+(base) [duarte@node1 reference_panel]$ cd ..
+(base) [duarte@node1 working_directory_h2]$ mkdir greml_pcrelate
+(base) [duarte@node1 working_directory_h2]$ cd greml_pcrelate/
+(base) [duarte@node1 greml_pcrelate]$ conda activate genesis
+(genesis) [duarte@node1 greml_pcrelate]$ pwd
+/home/duarte/working_directory_h2/greml_pcrelate
 ```
 
 </details>
@@ -3423,7 +3412,7 @@ The script reuses several things we already computed, so nothing here is recalcu
 
 | input | where it comes from |
 |---|---|
-| `../reference_panel/merged_chr1_22` | Step 3.a, just now |
+| `../reference_panel/merged_chr1_22` | Step 10.a, just now |
 | `mypcair_r2_results_rds` | Step 4.a, the second round of PC-AiR |
 | `unrelated_IIDs.txt` | Step 4.c, the samples that survived NAToRA |
 | `pcair_r2_covariates_merged.tsv` | Step 4.a, the merged covariate table |
@@ -3454,7 +3443,7 @@ pca_out_dir  <- "../pca_and_such/outFolder_pca_andSuch/"   # output of the PCA p
 h2_out_dir   <- "./outFolder_h2"
 dir.create(h2_out_dir, showWarnings = FALSE, recursive = TRUE)
 
-# the cov-LDSC variant set: imputed r2>0.8 U genotyped U HapMap3, merged in step 3.a
+# the cov-LDSC variant set: imputed r2>0.8 U genotyped U HapMap3, merged in step 10.a
 h2_input     <- "../reference_panel/merged_chr1_22"        # plink prefix
 h2_input_fmt <- "bfile"
 
@@ -3745,8 +3734,8 @@ Here an example on how to run it interactively in the terminal
 <summary>terminal example: running the PC-Relate GRM script</summary>
 
 ```console
-(genesis) [duartej3@lri-r10 greml_pcrelate]$ nano grm_with_pcrelate.r
-(genesis) [duartej3@lri-r10 greml_pcrelate]$ Rscript grm_with_pcrelate.r 
+(genesis) [duarte@node1 greml_pcrelate]$ nano grm_with_pcrelate.r
+(genesis) [duarte@node1 greml_pcrelate]$ Rscript grm_with_pcrelate.r 
 ```
 
 </details>
@@ -3783,18 +3772,18 @@ Rscript grm_with_pcrelate.r
 <summary>terminal example: submitting the job</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml_pcrelate]$ mkdir -p ./logs
-(base) [duartej3@lri-r10 greml_pcrelate]$ nano get_grm_pcrel.pbs
-(base) [duartej3@lri-r10 greml_pcrelate]$ sbatch get_grm_pcrel.pbs
+(base) [duarte@node1 greml_pcrelate]$ mkdir -p ./logs
+(base) [duarte@node1 greml_pcrelate]$ nano get_grm_pcrel.pbs
+(base) [duarte@node1 greml_pcrelate]$ sbatch get_grm_pcrel.pbs
 Submitted batch job 6118904
-(base) [duartej3@lri-r10 greml_pcrelate]$ # check on it later with
-(base) [duartej3@lri-r10 greml_pcrelate]$ squeue -u duartej3
-(base) [duartej3@lri-r10 greml_pcrelate]$ tail -20 logs/get_grm_pcrel.out
+(base) [duarte@node1 greml_pcrelate]$ # check on it later with
+(base) [duarte@node1 greml_pcrelate]$ squeue -u duarte
+(base) [duarte@node1 greml_pcrelate]$ tail -20 logs/get_grm_pcrel.out
 ```
 
 </details>
 
-Two things to keep in sync when you edit the resources. First, **`--cpus-per-task` in the job header and `n_cores` in the R config block must match.** They are set independently, and asking BiocParallel for 12 workers on a 4-CPU allocation will oversubscribe the node and slow everything down rather than speed it up. Second, the memory is driven by the size of the merged fileset from Step 3.a, so if your cohort is larger than the numbers quoted above, scale `--mem` accordingly rather than assuming 94G will do.
+Two things to keep in sync when you edit the resources. First, **`--cpus-per-task` in the job header and `n_cores` in the R config block must match.** They are set independently, and asking BiocParallel for 12 workers on a 4-CPU allocation will oversubscribe the node and slow everything down rather than speed it up. Second, the memory is driven by the size of the merged fileset from Step 10.a, so if your cohort is larger than the numbers quoted above, scale `--mem` accordingly rather than assuming 94G will do.
 
 Note that the job submits from `base`, not from an activated `genesis`: the environment is activated inside the job script, on the compute node where it actually matters.
 
@@ -3811,13 +3800,13 @@ Please send us these diagnostics along with the estimates. Comparing them across
 
 The GRM itself comes out in GCTA's gzipped text format, as `outFolder_h2/grm_pcrelate_variant.grm.gz` plus its `.grm.id`. That is what arm 3 feeds to GCTA in the following steps. 
 
-## Step 4. run GREML on the PC-Relate GRM
+## Step 11. run GREML on the PC-Relate GRM
 
-This completes arm 3. It is the same GCTA REML fit, the same phenotype and covariate files and the same prevalence grid as Step 2 — the only thing that changes is which GRM goes into `--grm`. Everything else being identical.
+This completes arm 3. It is the same GCTA REML fit, the same phenotype and covariate files and the same prevalence grid as Step 9 — the only thing that changes is which GRM goes into `--grm`. Everything else being identical.
 
 We keep this arm inside `greml_pcrelate`, next to the GRM it consumes, so that the two arms never accidentally read each other's files.
 
-**One conversion first.** The R script in Step 3.b wrote the GRM in GCTA's gzipped *text* format (`grm_pcrelate_variant.grm.gz` plus `.grm.id`), because that is the format an R matrix can be streamed into. GCTA reads that with `--grm-gz`, but it parses the whole text file on every run, and we are about to run it three times. So the script below converts it once to GCTA's binary format and then works from that. The conversion is skipped if the binary GRM is already there, so re-runs are cheap.
+**One conversion first.** The R script in Step 10.b wrote the GRM in GCTA's gzipped *text* format (`grm_pcrelate_variant.grm.gz` plus `.grm.id`), because that is the format an R matrix can be streamed into. GCTA reads that with `--grm-gz`, but it parses the whole text file on every run, and we are about to run it three times. So the script below converts it once to GCTA's binary format and then works from that. The conversion is skipped if the binary GRM is already there, so re-runs are cheap.
 
 <details>
 <summary>script: <code>run_greml_pcrelate.sh</code> — converts the GRM to binary and runs GREML across the prevalence grid</summary>
@@ -3839,11 +3828,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# The GCTA executable downloaded in step 1.a, kept in ./programs like plink
+# The GCTA executable downloaded in step 8.a, kept in ./programs like plink
 GCTA="${GCTA:-${SCRIPT_DIR}/../programs/gcta-1.95.3-linux-x86_64/gcta}"
 THREADS="${THREADS:-4}"
 
-# The gzipped text GRM written by grm_with_pcrelate.r in step 3.b, and the
+# The gzipped text GRM written by grm_with_pcrelate.r in step 10.b, and the
 # binary version of it that this script derives once and then reuses.
 GRM_TEXT="${GRM_TEXT:-${SCRIPT_DIR}/outFolder_h2/grm_pcrelate_variant}"
 GRM="${GRM_TEXT}_bin"
@@ -3890,7 +3879,7 @@ else
     for f in "${GRM_TEXT}.grm.gz" "${GRM_TEXT}.grm.id"; do
         if [[ ! -s "${f}" ]]; then
             echo "ERROR: missing or empty input: ${f}" >&2
-            echo "       did grm_with_pcrelate.r finish in step 3.b?" >&2
+            echo "       did grm_with_pcrelate.r finish in step 10.b?" >&2
             exit 1
         fi
     done
@@ -4010,17 +3999,16 @@ In the terminal do
 <summary>terminal example: saving and running GREML on the PC-Relate GRM</summary>
 
 ```console
-(genesis) [duartej3@lri-r10 greml_pcrelate]$ conda deactivate
-(base) [duartej3@lri-r10 greml_pcrelate]$ nano run_greml_pcrelate.sh
-(base) [duartej3@lri-r10 greml_pcrelate]$ bash run_greml_pcrelate.sh
+(genesis) [duarte@node1 greml_pcrelate]$ conda deactivate
+(base) [duarte@node1 greml_pcrelate]$ nano run_greml_pcrelate.sh
+(base) [duarte@node1 greml_pcrelate]$ bash run_greml_pcrelate.sh
 ==============================================================
-Started : Mon Aug 10 20:03:44 EDT 2026
-Host    : lri-r10.lerner.ccf.org
-GRM     : /home/duartej3/working_directory_h2/greml_pcrelate/outFolder_h2/grm_pcrelate_variant_bin
+Host    : node1.lerner.ccf.org
+GRM     : /home/duarte/working_directory_h2/greml_pcrelate/outFolder_h2/grm_pcrelate_variant_bin
 Threads : 4
-Log     : /home/duartej3/working_directory_h2/greml_pcrelate/greml_out/greml_pcrel.log
+Log     : /home/duarte/working_directory_h2/greml_pcrelate/greml_out/greml_pcrel.log
 ==============================================================
-Converting the text GRM to binary -> /home/duartej3/working_directory_h2/greml_pcrelate/outFolder_h2/grm_pcrelate_variant_bin
+Converting the text GRM to binary -> /home/duarte/working_directory_h2/greml_pcrelate/outFolder_h2/grm_pcrelate_variant_bin
 Samples in GRM: 6412
 Sample set matches the standard GCTA GRM from arm 2.
 
@@ -4036,7 +4024,7 @@ Note that the `genesis` environment is not needed here, only GCTA, so you can de
 <summary>terminal example: the output folder and the collated grid</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml_pcrelate]$ ls greml_out/
+(base) [duarte@node1 greml_pcrelate]$ ls greml_out/
 greml_pcrel.log                       greml_pcrel_prev_0.01.hsq  greml_pcrel_prev_0.02.log
 greml_pcrel_prevalence_grid.tsv       greml_pcrel_prev_0.01.log  greml_pcrel_prev_0.005.hsq
 greml_pcrel_prev_0.02.hsq             greml_pcrel_prev_0.005.log
@@ -4044,7 +4032,7 @@ greml_pcrel_prev_0.02.hsq             greml_pcrel_prev_0.005.log
 
 </details>
 
-Read the `.hsq` exactly as described at the end of Step 2: `n` should match your unrelated sample count, `V(G)/Vp` is identical across the three runs by construction, and `V(G)/Vp_L` is the number we report.
+Read the `.hsq` exactly as described at the end of Step 9: `n` should match your unrelated sample count, `V(G)/Vp` is identical across the three runs by construction, and `V(G)/Vp_L` is the number we report.
 
 What is new here is the comparison. Put the two grids side by side at the primary prevalence:
 
@@ -4052,7 +4040,7 @@ What is new here is the comparison. Put the two grids side by side at the primar
 <summary>terminal example: arm 2 against arm 3 at K = 0.005</summary>
 
 ```console
-(base) [duartej3@lri-r10 greml_pcrelate]$ grep 'V(G)/Vp_L' \
+(base) [duarte@node1 greml_pcrelate]$ grep 'V(G)/Vp_L' \
 >   ../greml/gcta_singleGRM/greml/PD_singleGRM_GREML_K0.005.hsq \
 >   greml_out/greml_pcrel_prev_0.005.hsq
 ../greml/gcta_singleGRM/greml/PD_singleGRM_GREML_K0.005.hsq:V(G)/Vp_L	0.286547	0.029183
@@ -4063,7 +4051,7 @@ greml_out/greml_pcrel_prev_0.005.hsq:V(G)/Vp_L	0.261584	0.027979
 
 Please share both prevalence grids and both sets of `.hsq` files.
 
-## Step 5. run PCGC on both GRMs, with a permutation null
+## Step 12. run PCGC on both GRMs, with a permutation null
 
 This one step closes out four of the seven arms at once, because PCGC is cheap enough to run many times:
 
@@ -4078,24 +4066,24 @@ The script below does the observed run and the permutation replicates for **one*
 
 Why bother with the permutations at all? GREML gives us a likelihood ratio test and gives us a p-value for the observed estimate compared to a null, but PCGC is a moment-based estimator, and through LDAK we can shuffle the correspondence between phenotypes and kinships destroying any real genetic signal while leaving the sample size, the ascertainment and the ancestry structure exactly as they are. The spread of the resulting estimates *is* the noise floor. 
 
-### Step 5.a get LDAK
+### Step 12.a get LDAK
 
 PCGC is implemented in LDAK, so we need that program. As with plink and GCTA, it goes in `./programs`.
 
-Remember the distinction made in Step 3.b: we are using the LDAK *software* for its PCGC implementation, not the LDAK heritability *model*. Every run below stays on the standard `α = −1` model, on our own GRMs.
+Remember the distinction made in Step 10.b: we are using the LDAK *software* for its PCGC implementation, not the LDAK heritability *model*. Every run below stays on the standard `α = −1` model, on our own GRMs.
 
 <details>
 <summary>terminal example: downloading LDAK and checking the executable</summary>
 
 ```console
-(base) [duartej3@lri-r10 working_directory_h2]$ cd programs/
-(base) [duartej3@lri-r10 programs]$ wget https://github.com/dougspeed/LDAK/raw/main/ldak6.3.linux  
-(base) [duartej3@lri-r10 programs]$ chmod a+x ldak6.3.linux 
+(base) [duarte@node1 working_directory_h2]$ cd programs/
+(base) [duarte@node1 programs]$ wget https://github.com/dougspeed/LDAK/raw/main/ldak6.3.linux  
+(base) [duarte@node1 programs]$ chmod a+x ldak6.3.linux 
 ```
 
 </details>
 
-### Step 5.b create the folder
+### Step 12.b create the folder
 
 PCGC consumes both GRMs, one from `greml` and one from `greml_pcrelate`, so it gets its own folder at the same level rather than living inside either one.
 
@@ -4103,16 +4091,16 @@ PCGC consumes both GRMs, one from `greml` and one from `greml_pcrelate`, so it g
 <summary>terminal example: creating the pcgc folder</summary>
 
 ```console
-(base) [duartej3@lri-r10 programs]$ cd ..
-(base) [duartej3@lri-r10 working_directory_h2]$ mkdir pcgc
-(base) [duartej3@lri-r10 working_directory_h2]$ cd pcgc/
-(base) [duartej3@lri-r10 pcgc]$ ls ..
+(base) [duarte@node1 programs]$ cd ..
+(base) [duarte@node1 working_directory_h2]$ mkdir pcgc
+(base) [duarte@node1 working_directory_h2]$ cd pcgc/
+(base) [duarte@node1 pcgc]$ ls ..
 covldsc_h2  genetic_data  greml  greml_pcrelate  gwas  pca_and_such  pcgc  programs  reference_panel
 ```
 
 </details>
 
-### Step 5.c run PCGC and the permutation null
+### Step 12.c run PCGC and the permutation null
 
 The script takes one argument, `gcta` or `pcrelate`, which selects the GRM and labels every output accordingly. Everything else is shared.
 
@@ -4120,7 +4108,7 @@ Three things are worth knowing before you launch it.
 
 **The GRM has to be covariate-adjusted first.** LDAK's `--adjust-grm` projects the covariates out of the kinship matrix, and PCGC needs that done when ancestry PCs are among the covariates. It depends only on the covariates, not on the prevalence, so it runs once and is reused across the whole grid.
 
-**Unlike GREML, the prevalence enters the estimation itself.** In Step 2 you saw `V(G)/Vp` come out identical across the three `K` values, because GREML fits on the observed scale and only transforms afterwards. PCGC does not work that way: the ascertainment correction uses `K` inside the moment equations, so all three grids differ from scratch.
+**Unlike GREML, the prevalence enters the estimation itself.** In Step 9 you saw `V(G)/Vp` come out identical across the three `K` values, because GREML fits on the observed scale and only transforms afterwards. PCGC does not work that way: the ascertainment correction uses `K` inside the moment equations, so all three grids differ from scratch.
 
 **Start small.** The defaults are 100 replicates at each of three prevalences, so 303 LDAK runs per GRM, 606 in total. Do a smoke test first with `NPERM=10` to confirm everything parses if you want, then launch the full thing.
 
@@ -4170,13 +4158,13 @@ case "${WHICH_GRM}" in
         ;;
     *)
         echo "Usage: bash run_pcgc.sh {gcta|pcrelate}" >&2
-        echo "  gcta     -> arms 4 and 7, the standard GCTA GRM from step 2" >&2
-        echo "  pcrelate -> arms 5 and 6, the PC-Relate GRM from step 3.b" >&2
+        echo "  gcta     -> arms 4 and 7, the standard GCTA GRM from step 9" >&2
+        echo "  pcrelate -> arms 5 and 6, the PC-Relate GRM from step 10.b" >&2
         exit 1
         ;;
 esac
 
-# The LDAK executable downloaded in step 5.a, kept in ./programs
+# The LDAK executable downloaded in step 12.a, kept in ./programs
 LDAK="${LDAK:-${SCRIPT_DIR}/../programs/ldak6.3.linux}"
 
 # Input GRM and the covariate-adjusted GRM it produces. --adjust-grm is
@@ -4188,7 +4176,7 @@ KLOG_DIR="${OUTDIR}/pcgc_screen_logs"
 
 ADJ_GRM="${ADJ_GRM:-${OUTDIR}/grm_${WHICH_GRM}_adj}"
 
-# The all-numeric covariate file written by grm_with_pcrelate.r in step 3.b.
+# The all-numeric covariate file written by grm_with_pcrelate.r in step 10.b.
 # Both arms use the same covariates: that is the point of the comparison.
 COVAR="${COVAR:-${SCRIPT_DIR}/../greml_pcrelate/outFolder_h2/pd.ldak.covar}"
 
@@ -4463,12 +4451,12 @@ In the terminal do
 <summary>terminal example: smoke test, then the two full runs</summary>
 
 ```console
-(base) [duartej3@lri-r10 pcgc]$ nano run_pcgc.sh
-(base) [duartej3@lri-r10 pcgc]$ # always smoke test first: 10 replicates instead of 100
-(base) [duartej3@lri-r10 pcgc]$ NPERM=10 bash run_pcgc.sh gcta
-(base) [duartej3@lri-r10 pcgc]$ # if looks right, now the real thing for both GRMs
-(base) [duartej3@lri-r10 pcgc]$ bash run_pcgc.sh gcta
-(base) [duartej3@lri-r10 pcgc]$ bash run_pcgc.sh pcrelate
+(base) [duarte@node1 pcgc]$ nano run_pcgc.sh
+(base) [duarte@node1 pcgc]$ # you can smoke test first: 10 replicates instead of 100
+(base) [duarte@node1 pcgc]$ #NPERM=10 bash run_pcgc.sh gcta
+(base) [duarte@node1 pcgc]$ # if looks right, now the real thing for both GRMs
+(base) [duarte@node1 pcgc]$ bash run_pcgc.sh gcta
+(base) [duarte@node1 pcgc]$ bash run_pcgc.sh pcrelate
 ```
 
 </details>
@@ -4489,4 +4477,868 @@ Note that last point: `perm_p` cannot go below `1/(NPERM+1)`, so a value of 0.00
 
 Finally, comparing arms 4 and 5 against arms 2 and 3 is where this gets interesting. Arm 4 against arm 2 holds the GRM fixed and swaps GREML for PCGC, so any difference is about how the two estimators handle case ascertainment. Arm 5 against arm 3 asks the same question on the ancestry-aware GRM. If PCGC comes out systematically lower than GREML in your cohort, that is the ascertainment correction doing its job, and it is one of the headline comparisons this project set out to make.
 
-Please share both null summary tables, both long-format estimate files, and the master logs.
+Please share both null summary tables, both long-format estimate files, and the master logs. Step 13 collects them for you along with everything else, so there is no need to go hunting for them by hand.
+
+
+---
+
+# Wrapping up
+
+## Step 13. collect the shareables into one folder
+
+Throughout the tutorial we have asked you to send us particular files. Rather than making you collect all of that by hand across nine folders and 22 chromosome subfolders, this last script walks the project tree and gathers everything into a single folder.
+
+It stops there, on purpose. Nothing is compressed and nothing is sent. You get a plain folder you can open and read through, and when you are satisfied with what is in it, you zip it yourself and send it over.
+
+**It is built around one rule: nothing that identifies a participant leaves your institution.** The bundle carries logs, heritability estimates, variance components, prevalence grids, diagnostics and plots. It does not carry covariate or phenotype files, GRMs or their `.grm.id` files, kinship tables, sample ID lists, or plink filesets. After copying, the script re-scans the finished bundle and deletes anything matching an individual-level pattern that slipped through, so the exclusion does not depend on the copy rules alone being right.
+
+Here is what it collects and where each piece comes from:
+
+| What | Where it comes from | Why we need it |
+|---|---|---|
+| Sample counts, cases, controls, disease proportion | Step 4.c log | The prevalence every liability-scale number in the bundle was computed with |
+| PC scatter plots, both rounds | Step 4.a | To assess ancestry structure and whether the PCs behave |
+| SNP–PC correlation plots, plus the top 1000 rows per PC | Step 4.a | To spot a PC driven by a single locus rather than by ancestry |
+| plink and cov-LDSC logs, per chromosome | Steps 2, 5.b | Variant counts at each filtering stage |
+| GWAS logs, Manhattan and QQ plots | Steps 6, 6.a | Telling an underpowered GWAS apart from uncorrected stratification |
+| cov-LDSC estimates, three prevalences | Step 7 | **Arm 1** |
+| GREML `.hsq` files and prevalence grid | Step 9 | **Arm 2** |
+| PC-Relate GRM diagnostics log | Step 10.b | Diagonal, off-diagonal, other diagnostics |
+| GREML `.hsq` files and prevalence grid | Step 11 | **Arm 3** |
+| PCGC null summaries, long-format estimates, logs | Step 12 | **Arms 4 to 7** |
+
+Two things are deliberately left out for size rather than privacy: the GWAS summary statistics and the 22 LD score files. Both are aggregate and perfectly shareable, they are just very large. If we need them for your cohort we will ask.
+
+We are also not collecting log files that contain individual-level data. The one that matters here is the PCA pipeline log, `pipeline_run.log`, which prints a corner of the KING and PC-Relate matrices and the head of the kinship pair table, all of it labelled with sample IDs. It is skipped, and there is nothing for you to redact. Every other log in the pipeline reports counts, variances and estimates only, and those all travel.
+
+<details>
+<summary>script: <code>collect_shareables.sh</code> — gathers every shareable output into one folder</summary>
+
+```bash
+#!/bin/bash
+# Collect every shareable result of the h2 tutorial into a single folder,
+# ready to be zipped and sent back to the coordinating team.
+#
+# Run it inside /working_directory_h2:
+#     bash collect_shareables.sh <COHORT_NAME>
+#
+# e.g.
+#     bash collect_shareables.sh LARGE-PD
+#
+# WHAT GOES IN
+#   Logs, heritability estimates (.hsq, LDSC .log, PCGC summaries), prevalence
+#   grid tables, GRM diagnostics, and the diagnostic plots. All of it is either
+#   aggregate (counts, variances, estimates) or variant-level.
+#
+# WHAT STAYS OUT, deliberately
+#   Nothing that carries a sample identifier or a per-sample value:
+#     - covariate and phenotype files (*_covar.tsv, *_qcovar.tsv, *_pheno.tsv,
+#       *_PCs.tsv, *_IIDs.txt, unrelated_IIDs.txt, pcair_r2_covariates*.tsv,
+#       pd.ldak.covar)
+#     - GRMs and their id files (*.grm.bin, *.grm.N.bin, *.grm.gz, *.grm.id)
+#     - pairwise kinship tables and the NAToRA removal lists
+#     - plink filesets (*.bed/*.bim/*.fam/*.pgen/*.psam/*.pvar) and *.gds/*_rds
+#     - log files that carry individual-level data. The PCA pipeline log
+#       (pca_and_such/outFolder_pca_andSuch/pipeline_run.log) prints a corner
+#       of the KING and PC-Relate matrices and the head of the kinship pair
+#       table, all of it labelled with sample IDs, so it is not collected.
+#   Also left out for size rather than privacy: the GWAS summary statistics and
+#   the 22 cov-LDSC LD score sets. They are aggregate and can be sent on
+#   request:
+#     gwas/out/gwaslab_output/gwas_sumstats_allchr.ldsc.tsv.gz
+#     reference_panel/chr*/out/covldsc_chr*.l2.ldscore.gz  (plus .l2.M*)
+#
+# OUTPUT
+#   A plain folder, not an archive. Look through it, and once you are happy
+#   with what is in there, zip it yourself and send it over.
+
+set -euo pipefail
+shopt -s nullglob          # a glob that matches nothing disappears instead of
+                           # being passed through literally
+
+# ---------------------------------------------------------------------
+# Arguments and paths
+# ---------------------------------------------------------------------
+
+if [[ $# -lt 1 ]]; then
+    echo "usage: bash collect_shareables.sh <COHORT_NAME>" >&2
+    echo "   e.g. bash collect_shareables.sh LARGE-PD" >&2
+    exit 1
+fi
+
+COHORT="$1"
+# Keep the label filesystem-safe: anything that is not a letter, digit, dot,
+# underscore or dash becomes a dash.
+COHORT_SAFE="$(echo "${COHORT}" | tr -c 'A-Za-z0-9._-' '-' | sed 's/-\{2,\}/-/g; s/^-//; s/-$//')"
+
+# Anchor to the script's own location so it works from anywhere.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKDIR="${WORKDIR:-${SCRIPT_DIR}}"
+cd "${WORKDIR}"
+
+STAMP="$(date +%Y%m%d)"
+BUNDLE_NAME="h2_shareables_${COHORT_SAFE}_${STAMP}"
+BUNDLE="${WORKDIR}/${BUNDLE_NAME}"
+
+if [[ -e "${BUNDLE}" ]]; then
+    echo "ERROR: ${BUNDLE} already exists." >&2
+    echo "       Remove it or rename it before running again, so nothing" >&2
+    echo "       from an older run is silently mixed into the new bundle." >&2
+    exit 1
+fi
+
+mkdir -p "${BUNDLE}"
+
+MANIFEST="${BUNDLE}/00_MANIFEST.tsv"
+MISSING="${BUNDLE}/00_MISSING.txt"
+README="${BUNDLE}/00_README.txt"
+
+: > "${MISSING}"
+
+echo "=============================================================="
+echo "Cohort   : ${COHORT}"
+echo "Workdir  : ${WORKDIR}"
+echo "Bundle   : ${BUNDLE}"
+echo "Started  : $(date)"
+echo "=============================================================="
+echo
+
+# ---------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------
+
+# grab <critical: yes|no> <description> <file...>
+#
+# Copies each file into the bundle, preserving its path relative to the working
+# directory, so nothing collides across the 22 chromosome folders and the
+# result mirrors the project tree the tutorial describes.
+#
+# When a glob matches nothing and the item was marked critical, the description
+# is recorded in 00_MISSING.txt rather than failing the run: a cohort that
+# stopped after arm 2 should still be able to send what it has.
+grab() {
+    local critical="$1" desc="$2"
+    shift 2
+    local n=0 f rel
+
+    for f in "$@"; do
+        [[ -f "${f}" ]] || continue
+        rel="${f#./}"
+        mkdir -p "${BUNDLE}/$(dirname "${rel}")"
+        cp -p "${f}" "${BUNDLE}/${rel}"
+        n=$((n + 1))
+    done
+
+    if [[ ${n} -eq 0 ]]; then
+        if [[ "${critical}" == "yes" ]]; then
+            printf 'MISSING   %s\n' "${desc}" >> "${MISSING}"
+            printf '  !! %-55s no files found\n' "${desc}"
+        else
+            printf '  -- %-55s none\n' "${desc}"
+        fi
+    else
+        printf '  ok %-55s %3d file(s)\n' "${desc}" "${n}"
+    fi
+}
+
+# ---------------------------------------------------------------------
+# Step 4 — PCA, relatedness, and the sample summary
+# ---------------------------------------------------------------------
+echo "[Step 4] PCA and sample summary"
+
+PCA_DIR="pca_and_such/outFolder_pca_andSuch"
+
+# The sample-size summary: total N, cases, controls, disease proportion.
+# Counts only, no identifiers. This is the file the prevalence used by LDSC and
+# every liability-scale transformation is read from.
+grab yes "sample count / prevalence summary" \
+    "${PCA_DIR}"/covariate_file_no_related_pairs.log
+
+# PC-pair scatter plots, both rounds of PC-AiR.
+grab yes "PC-pair scatter plots (round 1)" \
+    "${PCA_DIR}"/plot_PC[0-9][0-9]_PC[0-9][0-9].png
+grab yes "PC-pair scatter plots (round 2)" \
+    "${PCA_DIR}"/plot_PC[0-9][0-9]_PC[0-9][0-9]_2ndround.png
+
+# SNP-PC correlation plots. These are how a PC driven by a single locus
+# (an inversion, an unremoved high-LD region) is spotted.
+grab yes "SNP-PC correlation plots (round 1)" \
+    "${PCA_DIR}"/snpcorr_1stRound_PC[0-9][0-9].png
+grab yes "SNP-PC correlation plots (round 2)" \
+    "${PCA_DIR}"/snpcorr_2ndRound_PC[0-9][0-9].png
+
+# The full snpcorr tables are one row per variant and run to hundreds of MB
+# across 20 files, so only the strongest 1000 correlations per PC travel. That
+# is enough to identify a locus driving a PC. Variant-level, no sample data.
+echo "  .. trimming SNP-PC correlation tables to the top 1000 rows"
+n_corr=0
+for f in "${PCA_DIR}"/snpcorr_[12]*Round_PC[0-9][0-9].tsv; do
+    [[ -f "${f}" ]] || continue
+    mkdir -p "${BUNDLE}/${PCA_DIR}"
+    base="$(basename "${f}" .tsv)"
+    head -n 1001 "${f}" > "${BUNDLE}/${PCA_DIR}/${base}_top1000.tsv"
+    n_corr=$((n_corr + 1))
+done
+printf '  ok %-55s %3d file(s)\n' "SNP-PC correlation tables (top 1000)" "${n_corr}"
+[[ ${n_corr} -eq 0 ]] && echo "MISSING   SNP-PC correlation tables" >> "${MISSING}"
+
+echo
+
+# ---------------------------------------------------------------------
+# Step 2 — genotyped extraction logs
+# ---------------------------------------------------------------------
+echo "[Step 2] genotyped data extraction"
+
+grab no "genotype extraction logs" \
+    genetic_data/genotyped/logs/*.log \
+    genetic_data/genotyped/logs/*.out \
+    genetic_data/genotyped/logs/*.err
+grab no "genotype extraction plink logs" \
+    genetic_data/genotyped/*.log
+
+echo
+
+# ---------------------------------------------------------------------
+# Step 5 — reference panel and LD scores (logs only)
+# ---------------------------------------------------------------------
+echo "[Step 5] reference panel and cov-LDSC LD scores"
+
+# plink logs per chromosome: variant counts at every filtering stage.
+grab yes "reference panel plink logs (per chromosome)" \
+    reference_panel/chr[0-9]/*.log \
+    reference_panel/chr[0-9][0-9]/*.log
+
+# The cov-LDSC run log per chromosome: window size, variants scored.
+grab yes "cov-LDSC LD score logs (per chromosome)" \
+    reference_panel/chr[0-9]/out/*.log \
+    reference_panel/chr[0-9][0-9]/out/*.log
+
+grab no "reference panel scheduler logs" \
+    reference_panel/chr[0-9]/logs/*.log \
+    reference_panel/chr[0-9]/logs/*.out \
+    reference_panel/chr[0-9]/logs/*.err \
+    reference_panel/chr[0-9][0-9]/logs/*.log \
+    reference_panel/chr[0-9][0-9]/logs/*.out \
+    reference_panel/chr[0-9][0-9]/logs/*.err
+
+# The .l2.M / .l2.M_5_50 files are a single integer each: the number of
+# variants behind the LD scores. Tiny, and needed to sanity-check the
+# regression, so they travel even though the scores themselves do not.
+grab no "LD score variant counts (.l2.M)" \
+    reference_panel/chr[0-9]/out/*.l2.M \
+    reference_panel/chr[0-9]/out/*.l2.M_5_50 \
+    reference_panel/chr[0-9][0-9]/out/*.l2.M \
+    reference_panel/chr[0-9][0-9]/out/*.l2.M_5_50
+
+# The merge into a single genome-wide fileset (Step 10.a).
+grab no "genome-wide merge log" \
+    reference_panel/merged_chr1_22.log
+
+echo
+
+# ---------------------------------------------------------------------
+# Step 6 — GWAS
+# ---------------------------------------------------------------------
+echo "[Step 6] GWAS and summary statistic parsing"
+
+grab yes "GWAS plink logs" \
+    gwas/out/*.log
+grab no "GWAS scheduler logs" \
+    gwas/logs/*.log gwas/logs/*.out gwas/logs/*.err
+
+# Manhattan and QQ. The QQ is the single most informative plot for telling an
+# underpowered GWAS apart from an uncorrected-stratification one.
+grab yes "GWAS Manhattan / QQ plot" \
+    gwas/out/gwaslab_output/*.png
+grab yes "GWASLab parsing log" \
+    gwas/out/gwaslab_output/*.log
+
+echo
+
+# ---------------------------------------------------------------------
+# Step 7 — arm 1, cov-LDSC
+# ---------------------------------------------------------------------
+echo "[Step 7] arm 1 - cov-LDSC heritability"
+
+# LDSC writes the estimate into the .log itself, so these three files ARE the
+# arm 1 result.
+grab yes "cov-LDSC estimates, 3 prevalences (arm 1)" \
+    covldsc_h2/logs/cov_ldsc_popPrev_*.log
+
+echo
+
+# ---------------------------------------------------------------------
+# Steps 8-9 — arm 2, GREML on the standard GCTA GRM
+# ---------------------------------------------------------------------
+echo "[Steps 8-9] arm 2 - GREML on the GCTA GRM"
+
+grab no "per-chromosome GRM logs" \
+    greml/chr[0-9]/out/*.log \
+    greml/chr[0-9][0-9]/out/*.log
+grab no "per-chromosome GRM scheduler logs" \
+    greml/chr[0-9]/logs/*.log \
+    greml/chr[0-9]/logs/*.out \
+    greml/chr[0-9]/logs/*.err \
+    greml/chr[0-9][0-9]/logs/*.log \
+    greml/chr[0-9][0-9]/logs/*.out \
+    greml/chr[0-9][0-9]/logs/*.err
+
+grab no "genome-wide GRM merge log" \
+    greml/gcta_singleGRM/genomewide/*.log
+
+grab yes "GREML estimates .hsq, 3 prevalences (arm 2)" \
+    greml/gcta_singleGRM/greml/*.hsq
+grab yes "GREML prevalence grid table (arm 2)" \
+    greml/gcta_singleGRM/greml/*prevalence_grid.tsv
+grab no "GREML run logs (arm 2)" \
+    greml/gcta_singleGRM/greml/*.log \
+    greml/gcta_singleGRM/logs/*.log
+
+echo
+
+# ---------------------------------------------------------------------
+# Steps 10-11 — arm 3, PC-Relate GRM and GREML on it
+# ---------------------------------------------------------------------
+echo "[Steps 10-11] arm 3 - PC-Relate GRM and GREML"
+
+# The GRM diagnostics: diagonal summary, off-diagonal mean/SD/quantiles, PSD
+# check, SNPs per pair. All aggregate, and the tutorial asks for them by name.
+grab yes "PC-Relate GRM diagnostics log (arm 3)" \
+    greml_pcrelate/outFolder_h2/grm_with_pcrel_*.log
+
+grab yes "GREML estimates .hsq, 3 prevalences (arm 3)" \
+    greml_pcrelate/greml_out/*.hsq
+grab yes "GREML prevalence grid table (arm 3)" \
+    greml_pcrelate/greml_out/*prevalence_grid.tsv
+grab no "GREML run logs (arm 3)" \
+    greml_pcrelate/greml_out/*.log
+grab no "PC-Relate scheduler logs" \
+    greml_pcrelate/logs/*.log \
+    greml_pcrelate/logs/*.out \
+    greml_pcrelate/logs/*.err
+
+echo
+
+# ---------------------------------------------------------------------
+# Step 12 — arms 4 to 7, PCGC and the permutation null
+# ---------------------------------------------------------------------
+echo "[Step 12] arms 4-7 - PCGC and permutation null"
+
+grab yes "PCGC null summary tables (arms 4-7)" \
+    pcgc/out_gcta/pcgc_null_summary_*.tsv \
+    pcgc/out_pcrelate/pcgc_null_summary_*.tsv
+grab yes "PCGC all estimates, long format (arms 4-7)" \
+    pcgc/out_gcta/pcgc_all_estimates_*.tsv \
+    pcgc/out_pcrelate/pcgc_all_estimates_*.tsv
+grab yes "PCGC master logs" \
+    pcgc/out_gcta/pcgc_ldak_*.log \
+    pcgc/out_pcrelate/pcgc_ldak_*.log
+grab no "PCGC per-prevalence screen logs" \
+    pcgc/out_gcta/pcgc_screen_logs/* \
+    pcgc/out_pcrelate/pcgc_screen_logs/*
+
+echo
+
+# ---------------------------------------------------------------------
+# Safety net: refuse to ship anything that looks like individual-level data
+# ---------------------------------------------------------------------
+echo "[safety] scanning the bundle for individual-level files"
+
+# These patterns are deliberately extension-anchored. A bare '*covar*' would
+# also match covariate_file_no_related_pairs.log, which is the sample-count
+# summary we most want to keep - the data files are the .tsv/.txt siblings.
+LEAKS="$(find "${BUNDLE}" -type f \( \
+        -name '*.grm.bin'    -o -name '*.grm.N.bin' -o -name '*.grm.id'   -o \
+        -name '*.grm.gz'     -o -name '*.grm'       -o -name '*.bed'      -o \
+        -name '*.bim'        -o -name '*.fam'       -o -name '*.pgen'     -o \
+        -name '*.psam'       -o -name '*.pvar'      -o -name '*.gds'      -o \
+        -name '*_rds'        -o -name '*.rds'                             -o \
+        -name '*covar*.tsv'  -o -name '*covar*.txt' -o -name '*.covar'    -o \
+        -name '*pheno*.tsv'  -o -name '*_PCs.tsv'   -o -name '*_IIDs.txt' -o \
+        -name 'unrelated_IIDs.txt' -o -name '*kinship_pairs*'             -o \
+        -name 'NAToRA_output*'     -o -name 'pipeline_run.log' \
+    \) 2>/dev/null || true)"
+
+if [[ -n "${LEAKS}" ]]; then
+    echo "  !! individual-level files reached the bundle. Removing them:" >&2
+    while IFS= read -r f; do
+        [[ -n "${f}" ]] || continue
+        echo "     removed: ${f#${BUNDLE}/}" >&2
+        rm -f "${f}"
+    done <<< "${LEAKS}"
+    echo "     (this safety net is doing its job)" >&2
+else
+    echo "  ok nothing individual-level found"
+fi
+
+# The safety net above deletes on a name match, so confirm it did not take the
+# sample-count summary with it. That file is the one the whole liability-scale
+# comparison is anchored on, and losing it silently would be expensive.
+if [[ -f "${PCA_DIR}/covariate_file_no_related_pairs.log" \
+   && ! -f "${BUNDLE}/${PCA_DIR}/covariate_file_no_related_pairs.log" ]]; then
+    echo "  !! the sample-count summary was removed by the safety net." >&2
+    echo "     Restoring it: it holds counts only, no identifiers." >&2
+    mkdir -p "${BUNDLE}/${PCA_DIR}"
+    cp -p "${PCA_DIR}/covariate_file_no_related_pairs.log" \
+          "${BUNDLE}/${PCA_DIR}/"
+fi
+
+# Drop any empty directories the filtering left behind.
+find "${BUNDLE}" -type d -empty -delete 2>/dev/null || true
+mkdir -p "${BUNDLE}"
+
+echo
+
+# ---------------------------------------------------------------------
+# Manifest and README
+# ---------------------------------------------------------------------
+echo "[manifest] listing and checksumming"
+
+if command -v sha256sum >/dev/null 2>&1; then
+    HASHER="sha256sum"
+elif command -v shasum >/dev/null 2>&1; then
+    HASHER="shasum -a 256"
+else
+    HASHER=""
+fi
+
+{
+    printf 'file\tbytes\tsha256\n'
+    while IFS= read -r f; do
+        rel="${f#${BUNDLE}/}"
+        [[ "${rel}" == "00_MANIFEST.tsv" ]] && continue
+        size="$(wc -c < "${f}" | tr -d ' ')"
+        if [[ -n "${HASHER}" ]]; then
+            hash="$(${HASHER} "${f}" | awk '{print $1}')"
+        else
+            hash="NA"
+        fi
+        printf '%s\t%s\t%s\n' "${rel}" "${size}" "${hash}"
+    done < <(find "${BUNDLE}" -type f | sort)
+} > "${MANIFEST}"
+
+N_FILES="$(( $(wc -l < "${MANIFEST}") - 1 ))"
+
+if [[ -s "${MISSING}" ]]; then
+    N_MISSING="$(wc -l < "${MISSING}" | tr -d ' ')"
+else
+    N_MISSING=0
+    echo "Nothing expected was missing. All arms produced their outputs." > "${MISSING}"
+fi
+
+cat > "${README}" <<EOF
+h2 in underrepresented populations - results bundle
+===================================================
+
+Cohort        : ${COHORT}
+Generated     : $(date)
+Host          : $(hostname)
+Files         : ${N_FILES}
+Missing items : ${N_MISSING}   (see 00_MISSING.txt)
+
+The folder layout mirrors the project tree from the tutorial, so every file
+sits where you would expect to find it in working_directory_h2.
+
+WHERE THE HEADLINE NUMBERS ARE
+  arm 1  cov-LDSC          covldsc_h2/logs/cov_ldsc_popPrev_*.log
+  arm 2  GREML + GCTA GRM  greml/gcta_singleGRM/greml/*.hsq
+                           greml/gcta_singleGRM/greml/*prevalence_grid.tsv
+  arm 3  GREML + PC-Relate greml_pcrelate/greml_out/*.hsq
+                           greml_pcrelate/greml_out/*prevalence_grid.tsv
+  arms 4-7  PCGC + null    pcgc/out_gcta/pcgc_null_summary_gcta.tsv
+                           pcgc/out_pcrelate/pcgc_null_summary_pcrelate.tsv
+                           pcgc/out_*/pcgc_all_estimates_*.tsv
+
+SAMPLE COUNTS AND PREVALENCE
+  pca_and_such/outFolder_pca_andSuch/covariate_file_no_related_pairs.log
+  Total N, cases, controls, and the sample disease proportion that every
+  liability-scale transformation in this bundle was computed with.
+
+DIAGNOSTICS WE WILL READ
+  GWAS QQ / Manhattan      gwas/out/gwaslab_output/*.png
+  PC scatters, 2 rounds    pca_and_such/outFolder_pca_andSuch/plot_PC*.png
+  SNP-PC correlations      pca_and_such/outFolder_pca_andSuch/snpcorr_*.png
+  PC-Relate GRM behaviour  greml_pcrelate/outFolder_h2/grm_with_pcrel_*.log
+
+WHAT IS NOT HERE
+  No individual-level data of any kind: no covariate or phenotype files, no
+  GRMs or their .grm.id files, no kinship pair tables, no plink filesets, no
+  sample ID lists. The bundle is aggregate and variant-level only.
+
+  Log files that carry individual-level data are not collected either. The
+  PCA pipeline log (outFolder_pca_andSuch/pipeline_run.log) is the one that
+  matters: it prints a corner of the KING and PC-Relate matrices and the head
+  of the kinship pair table, all labelled with sample IDs. Every other log in
+  the pipeline reports counts and variances only, and those are all here.
+
+  Left out for size, not privacy - ask us and we will tell you whether we need
+  them:
+    - GWAS summary statistics (gwas/out/gwaslab_output/*.ldsc.tsv.gz)
+    - cov-LDSC LD scores (reference_panel/chr*/out/*.l2.ldscore.gz)
+    - the full SNP-PC correlation tables; only the top 1000 rows per PC are
+      included, as *_top1000.tsv
+
+VERIFYING
+  00_MANIFEST.tsv lists every file with its size and sha256, as the script
+  left the folder. If you add or remove anything before zipping, it will no
+  longer match - which is fine, just tell us what you changed.
+EOF
+
+echo "  ok ${N_FILES} files, manifest written"
+echo
+
+# ---------------------------------------------------------------------
+# Final report
+# ---------------------------------------------------------------------
+echo "=============================================================="
+echo "Done: $(date)"
+echo
+echo "  folder : ${BUNDLE_NAME}/"
+echo "  files  : ${N_FILES}"
+echo "  size   : $(du -sh "${BUNDLE}" | cut -f1)"
+echo
+
+if [[ "${N_MISSING}" -gt 0 ]]; then
+    echo "  ${N_MISSING} expected item(s) were NOT found:"
+    echo
+    sed 's/^/    /' "${MISSING}"
+    echo
+    echo "  If you have not run those steps yet, that is expected - finish"
+    echo "  them and run this script again. If you have, something did not"
+    echo "  write its output and it is worth checking before you send."
+else
+    echo "  Every expected output was found."
+fi
+
+echo
+echo "  Nothing has been compressed. Have a look through the folder, and"
+echo "  when you are happy with what is in it:"
+echo
+echo "      zip -r ${BUNDLE_NAME}.zip ${BUNDLE_NAME}"
+echo
+echo "  then send us the zip."
+echo "=============================================================="
+```
+
+</details>
+
+Save it at the top level of `working_directory_h2`, next to the nine analysis folders, and run it with your cohort name:
+
+<details>
+<summary>terminal example: collecting the shareables</summary>
+
+```console
+(base) [duarte@node1 working_directory_h2]$ nano collect_shareables.sh
+(base) [duarte@node1 working_directory_h2]$ bash collect_shareables.sh LARGE-PD
+==============================================================
+Cohort   : LARGE-PD
+Workdir  : /home/duarte/working_directory_h2
+Bundle   : /home/duarte/working_directory_h2/h2_shareables_LARGE-PD
+==============================================================
+
+[Step 4] PCA and sample summary
+  ok sample count / prevalence summary                         1 file(s)
+  ok PC-pair scatter plots (round 1)                           5 file(s)
+  ok PC-pair scatter plots (round 2)                           5 file(s)
+  ok SNP-PC correlation plots (round 1)                       10 file(s)
+  ok SNP-PC correlation plots (round 2)                       10 file(s)
+  .. trimming SNP-PC correlation tables to the top 1000 rows
+  ok SNP-PC correlation tables (top 1000)                     20 file(s)
+
+[Step 2] genotyped data extraction
+  ok genotype extraction logs                                 46 file(s)
+  ok genotype extraction plink logs                           23 file(s)
+
+[Step 5] reference panel and cov-LDSC LD scores
+  ok reference panel plink logs (per chromosome)              66 file(s)
+  ok cov-LDSC LD score logs (per chromosome)                  22 file(s)
+  ok reference panel scheduler logs                           44 file(s)
+  ok LD score variant counts (.l2.M)                          44 file(s)
+  ok genome-wide merge log                                     1 file(s)
+
+[Step 6] GWAS and summary statistic parsing
+  ok GWAS plink logs                                          22 file(s)
+  ok GWAS scheduler logs                                      44 file(s)
+  ok GWAS Manhattan / QQ plot                                  1 file(s)
+  ok GWASLab parsing log                                       1 file(s)
+
+[Step 7] arm 1 - cov-LDSC heritability
+  ok cov-LDSC estimates, 3 prevalences (arm 1)                 3 file(s)
+
+[Steps 8-9] arm 2 - GREML on the GCTA GRM
+  ok per-chromosome GRM logs                                  22 file(s)
+  ok per-chromosome GRM scheduler logs                        44 file(s)
+  ok genome-wide GRM merge log                                 1 file(s)
+  ok GREML estimates .hsq, 3 prevalences (arm 2)               3 file(s)
+  ok GREML prevalence grid table (arm 2)                       1 file(s)
+  ok GREML run logs (arm 2)                                    4 file(s)
+
+[Steps 10-11] arm 3 - PC-Relate GRM and GREML
+  ok PC-Relate GRM diagnostics log (arm 3)                     3 file(s)
+  ok GREML estimates .hsq, 3 prevalences (arm 3)               3 file(s)
+  ok GREML prevalence grid table (arm 3)                       1 file(s)
+  ok GREML run logs (arm 3)                                    4 file(s)
+  ok PC-Relate scheduler logs                                  2 file(s)
+
+[Step 12] arms 4-7 - PCGC and permutation null
+  ok PCGC null summary tables (arms 4-7)                       2 file(s)
+  ok PCGC all estimates, long format (arms 4-7)                2 file(s)
+  ok PCGC master logs                                          2 file(s)
+  ok PCGC per-prevalence screen logs                          12 file(s)
+
+[safety] scanning the bundle for individual-level files
+  ok nothing individual-level found
+
+[manifest] listing and checksumming
+  ok 475 files, manifest written
+
+==============================================================
+
+  folder : h2_shareables_LARGE-PD/
+  files  : 475
+  size   : 38M
+
+  Every expected output was found.
+
+  Nothing has been compressed. Have a look through the folder, and
+  when you are happy with what is in it:
+
+      zip -r h2_shareables_LARGE-PD.zip h2_shareables_LARGE-PD
+
+  then send us the zip.
+==============================================================
+```
+
+</details>
+
+Three files inside the bundle are worth opening before you send it:
+
+- **`00_README.txt`** tells us and you which file holds which arm's result.
+- **`00_MISSING.txt`** lists anything the script expected and did not find. If you have run every step, this should say nothing was missing. If it names an arm you did run, something did not write its output and it is worth checking before sending rather than after.
+- **`00_MANIFEST.tsv`** lists every file with its size and `sha256`, so we can confirm the transfer arrived intact.
+
+Everything in the folder is plain text or png, so `less` and any image viewer are all you need to go through it. Once it looks right to you, zip it and send it over. If `00_MISSING.txt` flagged something you could not resolve, just tell us what and why.
+
+
+---
+
+# Notes after you finish the tutorial 
+
+Congrats and thank you so much for your collaboration!
+
+Once you have reached this point I hope you had a smooth run and had fun while doing it! 
+
+You should have ended with the following project structure. Only the directories are shown here, not the files inside them, so do not worry if `ls` gives you more than this:
+
+
+<details>
+<summary>the full project tree (directories only)</summary>
+
+```text
+working_directory_h2
+├── covldsc_h2
+│   └── logs
+├── genetic_data
+│   ├── genotyped
+│   │   └── logs
+│   └── imputed -> /path/to/your/imputed_data
+├── greml
+│   ├── chr1
+│   │   ├── logs
+│   │   └── out
+│   ├── ...(21 additional chromosome folders)
+│   └── gcta_singleGRM
+│       ├── genomewide
+│       ├── greml
+│       └── logs
+├── greml_pcrelate
+│   ├── greml_out
+│   ├── logs
+│   └── outFolder_h2
+├── gwas
+│   ├── logs
+│   └── out
+│       └── gwaslab_output
+├── pca_and_such
+│   └── outFolder_pca_andSuch
+│       └── NAToRA_Public
+│           └── ...
+├── pcgc
+│   ├── out_gcta
+│   │   └── pcgc_screen_logs
+│   └── out_pcrelate
+│       └── pcgc_screen_logs
+├── programs
+│   ├── cov-ldsc
+│   │   └── ...
+│   ├── gcta-1.95.3-linux-x86_64
+│   │   └── ...
+│   └── ldsc
+│       └── ...
+└── reference_panel
+    ├── chr1
+    │   ├── logs
+    │   └── out
+    └── ...(21 additional chromosome folders)
+```
+
+</details>
+
+Two small things you may see that are not in the tree above. Unzipping the GCTA archive can leave a `programs/__MACOSX/` folder behind, which is a harmless artifact of how the archive was packaged and can be deleted. And `programs/` also holds the loose executables (`plink2`, `plink`, `ldak6.3.linux`), which do not show up here because only folders are listed.
+
+
+# Plotting
+
+If you are interested in generating a visual representation of the h2 estimates of your cohort, you can edit the following script:
+
+The script has empty values where each estimator should go, and you can hard code the specific values and edit some legends inside the script (I apologize for the hard coding). Nonetheless, I can provide a script that hunts for the specific values in the text files and does it for you. I will be working on that for the immediate future. But in the meantime, this is the first draft. 
+
+
+<details>
+<summary>script: <code>plotting_h2_estimates.sh</code> — plots the different estimates across the different prevalence settings 
+</summary>
+```R
+
+library(ggplot2)
+e <- function(short, label, family, h2, se, panel)
+  data.frame(short, label, family, h2, se, panel, stringsAsFactors = FALSE)
+# Panel order, left to right. Edit here to reorder or add a prevalence.
+prev <- c("K = 0.5%", "K = 1%", "K = 2%")
+est <- rbind(
+  # ---- K = 0.5% -------------------------------------------------------
+  e("cov-LDSC",          "cov-LDSC - in sample ref. panel", "cov-LDSC", 0, 0, prev[1]),
+  e("GREML\nGCTA",       "GREML + standard GCTA GRM",       "GREML",    0, 0, prev[1]),
+  e("GREML\nPC-Rel",     "GREML + PC-Relate GRM",           "GREML",    0, 0, prev[1]),
+  e("PCGC\nGCTA",        "PCGC + standard GCTA GRM",        "PCGC",     0, 0, prev[1]),
+  e("PCGC\nPC-Rel",      "PCGC + PC-Relate GRM",            "PCGC",     0, 0, prev[1]),
+  e("PCGC\nGCTA GRM Permutation", "PCGC shuffle kinship matrix (GCTA)",     "PCGC",     0, 0, prev[1]),
+  e("PCGC\nPC-Rel GRM Permutation", "PCGC shuffle kinship matrix (PC-Rel)",     "PCGC",     0, 0, prev[1]),
+  # ---- K = 1% ---------------------------------------------------------
+  # TODO: paste the K = 0.01 re-run here, replacing NA, NA.
+  e("cov-LDSC",          "cov-LDSC - in sample ref. panel", "cov-LDSC", 0, 0, prev[2]),
+  e("GREML\nGCTA",       "GREML + standard GCTA GRM",       "GREML",    0, 0, prev[2]),
+  e("GREML\nPC-Rel",     "GREML + PC-Relate GRM",           "GREML",    0, 0, prev[2]),
+  e("PCGC\nGCTA",        "PCGC + standard GCTA GRM",        "PCGC",     0, 0, prev[2]),
+  e("PCGC\nPC-Rel",      "PCGC + PC-Relate GRM",            "PCGC",     0, 0, prev[2]),
+  e("PCGC\nGCTA GRM Permutation", "PCGC shuffle kinship matrix (GCTA)",     "PCGC",     0, 0, prev[2]),
+  e("PCGC\nPC-Rel GRM Permutation", "PCGC shuffle kinship matrix (PC-Rel)",     "PCGC",     0, 0, prev[2]),
+  # ---- K = 2% ---------------------------------------------------------
+  # TODO: paste the K = 0.02 re-run here, replacing NA, NA.
+  e("cov-LDSC",          "cov-LDSC - in sample ref. panel", "cov-LDSC", 0, 0, prev[3]),
+  e("GREML\nGCTA",       "GREML + standard GCTA GRM",       "GREML",    0, 0, prev[3]),
+  e("GREML\nPC-Rel",     "GREML + PC-Relate GRM",           "GREML",    0, 0, prev[3]),
+  e("PCGC\nGCTA",        "PCGC + standard GCTA GRM",        "PCGC",     0, 0, prev[3]),
+  e("PCGC\nPC-Rel",      "PCGC + PC-Relate GRM",            "PCGC",     0, 0, prev[3]),
+  e("PCGC\nGCTA GRM Permutation", "PCGC shuffle kinship matrix (GCTA)",     "PCGC",     0, 0, prev[3])
+  e("PCGC\nPC-Rel GRM Permutation", "PCGC shuffle kinship matrix (PC-Rel)",     "PCGC",     0, 0, prev[3]),
+)
+
+# 2. PALETTE
+pal <- c(
+  "cov-LDSC - in sample ref. panel"  = "#35618F",
+  "GREML + standard GCTA GRM"       = "#B26A22",
+  "GREML + PC-Relate GRM"           = "#DDA96A",
+  "PCGC + standard GCTA GRM" = "#7E4260",
+  "PCGC + PC-Relate GRM"     = "#B98BA3",
+  "PCGC shuffle kinship matrix (GCTA)"     = "#2d0b1c",
+  "PCGC shuffle kinship matrix (PC-Rel)"     = "#30051b"
+)
+
+# 3. TEXT
+
+plot_title    <- "SNP heritability of PD in LARGE-PD" # Make sure to edit the name of your cohort
+plot_subtitle <- "n=7,178, ~8M snps (maf 0.01, imputed r2>0.8 + hap map3 + only genotyped)" #and here the right numbers for sample size and number of snps
+y_lab         <- expression(paste("SNP ", italic(h)^2, " (liability scale)"))
+legend_title  <- "Estimator"
+plot_caption  <- paste(
+  "Estimates across different prevalences (K) of PD",
+  "Box spans the point estimate +/- 1 SE; whiskers +/- 1.96 SE.",
+  "All models use alpha = -1, except from LDAK GRM that uses the Human Default Model",
+  "Kinship matrix shuffling: 100 permutations per K, mean h2 estimate and SD",
+  sep = "\n"
+)
+out_file <- "h2_estimates.png"
+out_w    <- 16
+out_h    <- 6.5
+out_dpi  <- 320
+
+# 4. DERIVED QUANTITIES
+est <- transform(
+  est,
+  lower = h2 - se,
+  upper = h2 + se,
+  ymin  = h2 - 1.96 * se,
+  ymax  = h2 + 1.96 * se
+)
+# Factor levels follow row order.
+# unique() each estimator appears once per panel:
+# factor() rejects duplicated levels.
+est$short <- factor(est$short, levels = unique(est$short))
+est$label <- factor(est$label, levels = unique(est$label))
+est$panel <- factor(est$panel, levels = prev)
+stopifnot(all(levels(est$label) %in% names(pal)))
+# catches a typo in `pal`
+# Each estimator must appear exactly once per panel, or the boxes silently
+# shift sideways and the panels stop being comparable.
+stopifnot(all(table(est$short, est$panel) == 1))
+
+# 5. PLOT
+
+p <- ggplot(est, aes(x = short, fill = label)) +
+  # h2 = 0 reference.
+  geom_hline(yintercept = 0, linetype = "22", colour = "grey45", linewidth = 0.4) +
+  geom_boxplot(
+    aes(ymin = ymin, lower = lower, middle = h2, upper = upper, ymax = ymax),
+    stat      = "identity",
+    width     = 0.55,
+    colour    = "grey20",
+    linewidth = 0.45,
+    alpha     = 0.9
+  ) +
+  geom_text(
+    aes(y = ymax, label = sprintf("%.3f", h2)),
+    vjust  = -0.9,
+    size   = 2.7,
+    colour = "grey25"
+  ) +
+  scale_fill_manual(values = pal, name = legend_title) +
+  scale_y_continuous(expand = expansion(mult = c(0.10, 0.16))) +
+  # Shared y-axis across panels
+  facet_wrap(~ panel, nrow = 1) +
+  labs(title = plot_title, subtitle = plot_subtitle,
+       x = NULL, y = y_lab, caption = plot_caption) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey92", linewidth = 0.35),
+    axis.text.x        = element_text(size = 7.5, lineheight = 0.95,
+                                      colour = "grey20"),
+    strip.text         = element_text(size = 11, colour = "grey30",
+                                      face = "plain",
+                                      margin = margin(t = 2, b = 8)),
+    panel.spacing.x    = unit(1.4, "lines"),
+    axis.title.y       = element_text(margin = margin(r = 9)),
+    axis.line.x        = element_line(colour = "grey70", linewidth = 0.4),
+    plot.title         = element_text(face = "bold", size = 14.5, hjust = 0.5,
+                                      margin = margin(b = 3)),
+    plot.subtitle      = element_text(size = 10, colour = "grey35", hjust = 0.5,
+                                      margin = margin(b = 14)),
+    plot.caption       = element_text(size = 8, colour = "grey45", hjust = 0,
+                                      margin = margin(t = 20)),
+    plot.caption.position = "plot",
+    plot.title.position   = "plot",
+    legend.position    = "bottom",
+    legend.title       = element_text(size = 9.5),
+    legend.text        = element_text(size = 8.8),
+    legend.key.size    = unit(0.85, "lines"),
+    legend.box.margin  = margin(t = 8, b = 4),
+    plot.margin        = margin(14, 18, 20, 14)
+  ) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+print(p)
+ggsave(out_file, p, width = out_w, height = out_h, dpi = out_dpi, bg = "white")
+cat("wrote", out_file, "\n")
+```
+</details>
+
