@@ -5214,7 +5214,6 @@ est <- rbind(
   e("PCGC\nGCTA GRM Permutation", "PCGC shuffle kinship matrix (GCTA)",     "PCGC",     0, 0, prev[1]),
   e("PCGC\nPC-Rel GRM Permutation", "PCGC shuffle kinship matrix (PC-Rel)",     "PCGC",     0, 0, prev[1]),
   # ---- K = 1% ---------------------------------------------------------
-  # TODO: paste the K = 0.01 re-run here, replacing NA, NA.
   e("cov-LDSC",          "cov-LDSC - in sample ref. panel", "cov-LDSC", 0, 0, prev[2]),
   e("GREML\nGCTA",       "GREML + standard GCTA GRM",       "GREML",    0, 0, prev[2]),
   e("GREML\nPC-Rel",     "GREML + PC-Relate GRM",           "GREML",    0, 0, prev[2]),
@@ -5223,7 +5222,6 @@ est <- rbind(
   e("PCGC\nGCTA GRM Permutation", "PCGC shuffle kinship matrix (GCTA)",     "PCGC",     0, 0, prev[2]),
   e("PCGC\nPC-Rel GRM Permutation", "PCGC shuffle kinship matrix (PC-Rel)",     "PCGC",     0, 0, prev[2]),
   # ---- K = 2% ---------------------------------------------------------
-  # TODO: paste the K = 0.02 re-run here, replacing NA, NA.
   e("cov-LDSC",          "cov-LDSC - in sample ref. panel", "cov-LDSC", 0, 0, prev[3]),
   e("GREML\nGCTA",       "GREML + standard GCTA GRM",       "GREML",    0, 0, prev[3]),
   e("GREML\nPC-Rel",     "GREML + PC-Relate GRM",           "GREML",    0, 0, prev[3]),
