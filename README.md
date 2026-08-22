@@ -88,8 +88,8 @@ Provide a reproducible, step-by-step workflow for estimating SNP heritability in
 
 ### Project aims
 
-1. **Lay out the analytical framework** for estimating $$h²_SNP$$ in underrepresented populations (URPs), with explicit management of admixture, relatedness, PD case ascertainment bias, liability scale transformation. 
-2. **Collaborate internationally** to build the capacity needed to estimate $$h2_SNP$$ as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs. 
+1. **Lay out the analytical framework** for estimating $$h²_SNP$$ in underrepresented populations (URPs), with explicit management of admixture, relatedness, PD case ascertainment bias and liability scale transformation. 
+2. **Collaborate internationally** to build the capacity needed to estimate $$h2_SNP$$ as accurately as possible in an increasingly diverse genomic landscape. Powered by and for URPs with the support from the Global Parkinson's Genetics Program (GP2). 
 3. **Characterize heterogeneity, methodological uncertainty and challenges** when computing this estimates, in light of a field whose methods were developed and validated mainly on European-ancestry data.
 
 ---
