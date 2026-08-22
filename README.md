@@ -22,10 +22,10 @@ $$
 VP = VA + VD + VI + VE + 2·Cov(G,E) + VGxE
 $$
 
-The last two terms (the genotype–environment covariance and the genotype-by-environment interaction variance) are usually left out of the heritability analysis that we are about to.
+The last two terms (the genotype–environment covariance and the genotype-by-environment interaction variance) are usually left out of the heritability analysis that we are about to run.
 
 Heritability estimates should not be interpreted as environment-independent estimates, but rather as population and its particular
-distribution of environment specific.  
+distribution of environment specifics.  
 
 In this GitHub, we do not provide a comprehensive coverage of these topics. For useful references you could refer to books like: Falconer, D.S. & Mackay, T.F.C. (1996). Introduction to Quantitative Genetics, and Lynch, M. & Walsh, B. (1998). Genetics and Analysis of Quantitative Traits.
 
