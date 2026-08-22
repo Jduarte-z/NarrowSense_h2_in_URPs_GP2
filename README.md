@@ -68,7 +68,7 @@ All of the previous discussions were in principle developed for quantitative tra
 
 **Scale.** Under the liability threshold model, each individual has an unobserved, normally distributed liability; individuals whose liability exceeds a threshold determined by the population prevalence $$K$$ are affected. Heritability estimated on the observed 0/1 scale depends on the case-control ratio in the sample and is not comparable across studies. Estimates must therefore be reported on the **liability scale**, which is a property of the population rather than of the study design.
 
-**Ascertainment.** Case-control cohorts are, by design, enriched for cases relative to the population ($$P >> K$$). This oversampling biases the naive observed-to-liability transformation and, more seriously, biases REML-based estimators when covariates such as ancestry principal components are included in the model. Golan et al., 2014 [https://pubmed.ncbi.nlm.nih.gov/25422463/] discuss this matter in a greater extent. 
+**Ascertainment.** Case-control cohorts are, by design, enriched for cases relative to the population ($$P >> K$$). This oversampling biases the naive observed-to-liability transformation and, more seriously, biases REML-based estimators when covariates such as ancestry principal components are included in the model. [Golan et al., 2014] (https://pubmed.ncbi.nlm.nih.gov/25422463/) discuss this matter in a greater extent. 
 
 For PD we use $$K = 0.005$$ as the primary population prevalence, consistent with the values used in previous published literature, and report sensitivity across $$K ∈ {0.005, 0.01, 0.02}$$. Prevalence is not measured with precision in underrepresented populations, and this uncertainty propagates directly into the liability-scale estimate. 
 
